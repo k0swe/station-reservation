@@ -1,0 +1,7 @@
+# Supabase local dev environment — never commit secrets or volumes
+.env
+.env.local
+
+# Supabase CLI stores local project secrets here
+supabase/.branches
+supabase/.temp
