@@ -38,8 +38,8 @@ Ham radio clubs need a lightweight way to manage reservations for shared radio s
 - Club Admin can demote another Club Admin to member.
 - Club Admin cannot demote themselves.
 - The system must enforce that each club always has at least one Club Admin.
-- Club Admin can change a member from approved to denied.
-- If a member is changed from approved to denied, all of their upcoming reservations in that club are cleared.
+- Club Admin can revoke an approved member back to denied.
+- If a member is changed from approved to denied, all of their upcoming reservations in that club are cancelled (not deleted) and remain in reservation history.
 - Changing a member from approved to denied must require explicit destructive-action confirmation.
 
 ### 5.4 Reservation Management
@@ -61,6 +61,7 @@ Ham radio clubs need a lightweight way to manage reservations for shared radio s
 ### 5.7 Timezone Policy (MVP)
 - Timezone is determined by each user's browser setting.
 - The system should not support a club-level timezone setting in MVP.
+- Reservation timestamps are stored canonically in UTC and rendered in each user's browser-local timezone.
 
 ## 6. Future Requirements (Not in MVP, design-ready)
 - Maximum continuous usage per member.
