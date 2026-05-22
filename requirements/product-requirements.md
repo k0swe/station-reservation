@@ -34,6 +34,13 @@ Ham radio clubs need a lightweight way to manage reservations for shared radio s
 - Club Admin can approve or reject membership requests.
 - Club Admin can approve resource access per member per resource.
 - Member may belong to a club but still be denied access to specific resources.
+- Club Admin can promote a member to Club Admin.
+- Club Admin can demote another Club Admin to member.
+- Club Admin cannot demote themselves.
+- The system must enforce that each club always has at least one Club Admin.
+- Club Admin can revoke an approved member back to denied.
+- If a member is changed from approved to denied, all of their upcoming reservations in that club are cancelled (not deleted) and remain in reservation history.
+- Changing a member from approved to denied must require explicit destructive-action confirmation.
 
 ### 5.4 Reservation Management
 - Member can view available time slots for resources they are approved to use.
@@ -45,6 +52,16 @@ Ham radio clubs need a lightweight way to manage reservations for shared radio s
 ### 5.5 Auditing and Transparency
 - Record who created/cancelled reservations and when.
 - Keep reservation history for operational review.
+
+### 5.6 Notifications (MVP)
+- MVP does not send email or in-app notifications.
+- Users are expected to check the app for reservation and approval status.
+- Design should leave room to add notifications later.
+
+### 5.7 Timezone Policy (MVP)
+- Timezone is determined by each user's browser setting.
+- The system should not support a club-level timezone setting in MVP.
+- Reservation timestamps are stored canonically in UTC and rendered in each user's browser-local timezone.
 
 ## 6. Future Requirements (Not in MVP, design-ready)
 - Maximum continuous usage per member.
@@ -86,8 +103,8 @@ Ham radio clubs need a lightweight way to manage reservations for shared radio s
 - Overlapping reservation attempts are rejected with a clear error.
 - Reservation cancellation updates availability immediately.
 
-## 9. Open Questions for Next Iteration
-- Should clubs support multiple admin roles/permissions levels?
-- Should reservation notifications be email, in-app, or both?
-- What timezone policy should be enforced (club-level vs user-level)?
-- Should recurring reservations be supported in v2?
+## 9. Decisions from Next Iteration
+- Clubs use two roles in MVP (Club Admin and Member), with Club Admin promotion/demotion controls and a minimum of one Club Admin at all times.
+- Notifications are skipped for MVP; users check the app directly, with future extensibility for notifications.
+- Timezone handling is browser-based per user for MVP (no club-level timezone setting).
+- Recurring reservations remain a v2 consideration.
