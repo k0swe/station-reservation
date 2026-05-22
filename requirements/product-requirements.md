@@ -13,6 +13,7 @@ Ham radio clubs need a lightweight way to manage reservations for shared radio s
 - Direct integration with external groupware calendars.
 - Payment, billing, or membership dues management.
 - Advanced scheduling policy enforcement beyond basic block reservations and conflict prevention.
+- Platform-wide admin tooling beyond per-club administration.
 
 ## 4. Users and Roles
 - **Platform Admin (future)**: manages global platform settings.
@@ -71,10 +72,11 @@ Ham radio clubs need a lightweight way to manage reservations for shared radio s
 
 ### 7.3 Primary Workflows
 1. Club admin creates club resources.
-2. Member requests club membership and resource access.
-3. Club admin approves membership and resource access.
-4. Member reserves available aligned time blocks.
-5. Member/admin cancels reservation when needed.
+2. Member requests club membership.
+3. After membership approval, member requests access to one or more resources.
+4. Club admin approves or rejects each resource access request.
+5. Member reserves available aligned time blocks.
+6. Member/admin cancels reservation when needed.
 
 ## 8. MVP Acceptance Criteria
 - A new club can be created and managed independently of others.
