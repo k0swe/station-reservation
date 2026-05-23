@@ -1,0 +1,14 @@
+<a matButton routerLink="/clubs">
+  &larr; Back to clubs
+</a>
+
+@if (isLoading()) {
+  <mat-spinner />
+} @else if (errorMessage(); as error) {
+  <p role="alert">{{ error }}</p>
+} @else if (club(); as club) {
+  <h1>{{ club.name }}</h1>
+  <p class="club-id">ID: {{ club.id }}</p>
+} @else {
+  <p>Club not found.</p>
+}

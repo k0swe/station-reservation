@@ -1,0 +1,28 @@
+<h2 mat-dialog-title>Create Club</h2>
+
+<mat-dialog-content>
+  <form class="create-club-form" [formGroup]="form" (ngSubmit)="submit()">
+    <mat-form-field>
+      <mat-label>Club name</mat-label>
+      <input matInput formControlName="name" autocomplete="off" />
+      @if (form.controls.name.hasError('required')) {
+        <mat-error>Club name is required.</mat-error>
+      }
+    </mat-form-field>
+  </form>
+
+  @if (errorMessage(); as msg) {
+    <p class="error-message" role="alert">{{ msg }}</p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button matButton type="button" (click)="cancel()">Cancel</button>
+  <button matButton="filled" type="button" [disabled]="isSubmitting()" (click)="submit()">
+    @if (isSubmitting()) {
+      <mat-spinner diameter="18" />
+    } @else {
+      Create
+    }
+  </button>
+</mat-dialog-actions>
