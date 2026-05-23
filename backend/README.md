@@ -1,6 +1,6 @@
 # Backend — Supabase
 
-This directory contains the Supabase backend for the Station Reservation app: SQL migrations, RLS
+This directory contains the Supabase backend for the Club Shack app: SQL migrations, RLS
 policies, SQL RPC functions, and local-dev configuration.
 
 ## Layout

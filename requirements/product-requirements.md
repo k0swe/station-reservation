@@ -1,4 +1,4 @@
-# Station Reservation - Initial Requirements and Design (MVP)
+# Club Shack - Initial Requirements and Design (MVP)
 
 ## 1. Problem Statement
 

@@ -1,5 +1,5 @@
 -- Migration: 20260522000000_initial_schema.sql
--- Creates all core tables, enums, indexes, and triggers for the Station Reservation app.
+-- Creates all core tables, enums, indexes, and triggers for the Club Shack app.
 
 -- ---------------------------------------------------------------------------
 -- Extensions

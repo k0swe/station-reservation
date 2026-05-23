@@ -25,6 +25,6 @@ import { AuthService } from './auth.service';
 })
 export class App {
   protected readonly auth = inject(AuthService);
-  protected readonly title = signal('Station Reservation');
+  protected readonly title = signal('Club Shack');
   protected readonly sidenavOpen = signal(true);
 }
