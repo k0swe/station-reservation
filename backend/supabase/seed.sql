@@ -1,5 +1,5 @@
 -- seed.sql
--- Local development seed data for Station Reservation.
+-- Local development seed data for Club Shack.
 --
 -- This file is applied automatically by `supabase db reset`.
 -- Do NOT run against a production database.

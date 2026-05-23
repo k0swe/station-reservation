@@ -1,8 +1,8 @@
-# Station Reservation - Technical Design (MVP)
+# Club Shack - Technical Design (MVP)
 
 ## 1. Overview
 
-This document records the technical design and architecture decisions for the Station Reservation
+This document records the technical design and architecture decisions for the Club Shack
 MVP. It is meant to complement the product requirements document and give contributors a shared
 reference for why specific technologies were chosen and how the system will be structured.
 
