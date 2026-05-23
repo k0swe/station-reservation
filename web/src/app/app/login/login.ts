@@ -25,14 +25,17 @@ export class LoginPage {
 
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
-  private readonly redirectTo = this.route.snapshot.queryParamMap.get('redirectTo') ?? '/';
 
   constructor() {
     effect(() => {
       if (this.auth.initialized() && this.auth.isAuthenticated()) {
-        void this.router.navigateByUrl(this.redirectTo, { replaceUrl: true });
+        void this.router.navigateByUrl(this.getRedirectTo(), { replaceUrl: true });
       }
     });
+  }
+
+  private getRedirectTo(): string {
+    return this.route.snapshot.queryParamMap.get('redirectTo') ?? '/';
   }
 
   protected async signIn(): Promise<void> {
