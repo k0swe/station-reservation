@@ -120,7 +120,7 @@ RLS is enabled on all public tables. The design follows two helper functions:
 | `clubs`                     | Any auth user                   | Any auth user    | Club admins only |
 | `users`                     | Any auth user                   | Trigger only     | Own profile only |
 | `memberships`               | Own + club admins               | Self (pending)   | RPC functions    |
-| `resources`                 | Members (active) + admins (all) | Club admins      | Club admins      |
+| `resources`                 | Any auth user (active) + admins (all) | Club admins      | Club admins      |
 | `resource_access_approvals` | Own + club admins               | Approved members | RPC functions    |
 | `reservations`              | Own + club admins               | RPC functions    | RPC functions    |
 | `reservation_audit_events`  | Own + club admins               | RPC functions    | —                |

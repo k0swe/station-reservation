@@ -9,6 +9,73 @@
 } @else if (club(); as club) {
   <h1>{{ club.name }}</h1>
   <p class="club-id">ID: {{ club.id }}</p>
+
+  <section class="resources-section">
+    <h2>Resources / Stations</h2>
+
+    @if (resourcesError(); as resourcesError) {
+      <p role="alert">{{ resourcesError }}</p>
+    } @else if (resources()?.length === 0) {
+      <p>No resources found for this club yet.</p>
+    } @else {
+      <mat-list>
+        @for (resource of resources(); track resource.id) {
+          <mat-list-item lines="3">
+            <div matListItemTitle>{{ resource.name }}</div>
+            <div matListItemLine>
+              Block size: {{ resource.block_size_minutes }} minutes
+            </div>
+            @if (resource.description) {
+              <div matListItemLine>{{ resource.description }}</div>
+            }
+          </mat-list-item>
+        }
+      </mat-list>
+    }
+  </section>
+
+  @if (isClubAdmin()) {
+    <section class="create-resource-section">
+      <h2>Create resource / station</h2>
+
+      <form class="create-resource-form" [formGroup]="form" (ngSubmit)="submitResource()">
+        <mat-form-field>
+          <mat-label>Resource name</mat-label>
+          <input matInput formControlName="name" autocomplete="off" />
+          @if (form.controls.name.hasError('required')) {
+            <mat-error>Resource name is required.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Description</mat-label>
+          <input matInput formControlName="description" autocomplete="off" />
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Block size (minutes)</mat-label>
+          <input matInput type="number" min="1" formControlName="blockSizeMinutes" />
+          @if (form.controls.blockSizeMinutes.hasError('required')) {
+            <mat-error>Block size is required.</mat-error>
+          } @else if (form.controls.blockSizeMinutes.hasError('min')) {
+            <mat-error>Block size must be greater than 0.</mat-error>
+          }
+        </mat-form-field>
+
+        <button matButton="filled" type="submit" [disabled]="isSubmittingResource()">
+          @if (isSubmittingResource()) {
+            <mat-spinner diameter="18" />
+          } @else {
+            Create resource
+          }
+        </button>
+      </form>
+
+      @if (createResourceError(); as createResourceError) {
+        <p class="error-message" role="alert">{{ createResourceError }}</p>
+      }
+    </section>
+  }
 } @else {
   <p>Club not found.</p>
 }
