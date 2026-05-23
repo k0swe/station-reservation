@@ -7,86 +7,27 @@
     <mat-icon>menu</mat-icon>
   </button>
   <span>{{ title() }}</span>
+  <span class="toolbar-spacer"></span>
+  @if (auth.initialized() && auth.isAuthenticated()) {
+    <span class="user-email">{{ auth.user()?.email }}</span>
+  }
 </mat-toolbar>
 
 <mat-sidenav-container class="sidenav-container">
   <mat-sidenav [opened]="sidenavOpen()" mode="side" class="sidenav">
     <mat-nav-list>
-      <a mat-list-item href="#">
+      <a mat-list-item routerLink="/" routerLinkActive="active-nav-item" [routerLinkActiveOptions]="{ exact: true }">
         <mat-icon matListItemIcon>home</mat-icon>
         <span matListItemTitle>Home</span>
       </a>
-      <a mat-list-item href="#">
-        <mat-icon matListItemIcon>event</mat-icon>
-        <span matListItemTitle>Reservations</span>
+      <a mat-list-item routerLink="/login" routerLinkActive="active-nav-item">
+        <mat-icon matListItemIcon>login</mat-icon>
+        <span matListItemTitle>Login</span>
       </a>
     </mat-nav-list>
   </mat-sidenav>
 
   <mat-sidenav-content class="content">
-    <p>Welcome to {{ title() }}</p>
-
-    @if (!auth.isConfigured()) {
-      <mat-card class="auth-card">
-        <mat-card-header>
-          <mat-card-title>Authentication setup required</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <p>
-            Set <code>supabaseUrl</code> and <code>supabasePublishableKey</code> in
-            <code>src/environments/environment.ts</code> to enable sign-in.
-          </p>
-        </mat-card-content>
-      </mat-card>
-    } @else if (!auth.initialized()) {
-      <p>Loading authentication status...</p>
-    } @else if (auth.isAuthenticated()) {
-      <mat-card class="auth-card">
-        <mat-card-header>
-          <mat-card-title>Signed in</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <p>You are signed in as <strong>{{ auth.user()?.email }}</strong>.</p>
-        </mat-card-content>
-        <mat-card-actions>
-          <button matButton="filled" type="button" (click)="signOut()">Sign out</button>
-        </mat-card-actions>
-      </mat-card>
-    } @else {
-      <mat-card class="auth-card">
-        <mat-card-header>
-          <mat-card-title>Sign in</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <form class="auth-form" [formGroup]="signInForm" (ngSubmit)="signIn()">
-            <mat-form-field>
-              <mat-label>Email</mat-label>
-              <input matInput type="email" formControlName="email" autocomplete="email" />
-              @if (signInForm.controls.email.hasError('required')) {
-                <mat-error>Email is required.</mat-error>
-              } @else if (signInForm.controls.email.hasError('email')) {
-                <mat-error>Enter a valid email.</mat-error>
-              }
-            </mat-form-field>
-
-            <mat-form-field>
-              <mat-label>Password</mat-label>
-              <input matInput type="password" formControlName="password" autocomplete="current-password" />
-              @if (signInForm.controls.password.hasError('required')) {
-                <mat-error>Password is required.</mat-error>
-              }
-            </mat-form-field>
-
-            <button matButton="filled" type="submit" [disabled]="signInForm.invalid || isSubmitting()">
-              Sign in
-            </button>
-          </form>
-        </mat-card-content>
-      </mat-card>
-    }
-
-    @if (authMessage(); as authMessage) {
-      <p role="status">{{ authMessage }}</p>
-    }
+    <router-outlet />
   </mat-sidenav-content>
 </mat-sidenav-container>
