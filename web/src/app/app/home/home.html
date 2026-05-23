@@ -1,0 +1,17 @@
+<p>Welcome to Station Reservation</p>
+
+<mat-card class="auth-card">
+  <mat-card-header>
+    <mat-card-title>Signed in</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <p>You are signed in as <strong>{{ auth.user()?.email }}</strong>.</p>
+  </mat-card-content>
+  <mat-card-actions>
+    <button matButton="filled" type="button" (click)="signOut()">Sign out</button>
+  </mat-card-actions>
+</mat-card>
+
+@if (authMessage(); as authMessage) {
+  <p role="status">{{ authMessage }}</p>
+}

@@ -7,6 +7,7 @@ import { environment } from '../environments/environment';
 export class AuthService {
   private readonly supabaseUrl = environment.supabaseUrl.trim();
   private readonly supabasePublishableKey = environment.supabasePublishableKey.trim();
+  private resolveInitialized!: () => void;
 
   readonly isConfigured = computed(() => this.supabaseUrl.length > 0 && this.supabasePublishableKey.length > 0);
   readonly session = signal<Session | null>(null);
@@ -16,10 +17,13 @@ export class AuthService {
 
   private readonly client = this.isConfigured() ? createClient(this.supabaseUrl, this.supabasePublishableKey) : null;
   private readonly authClient: GoTrueClient | null = this.client ? (this.client.auth as GoTrueClient) : null;
+  private readonly initializedPromise = new Promise<void>((resolve) => {
+    this.resolveInitialized = resolve;
+  });
 
   constructor() {
     if (!this.authClient) {
-      this.initialized.set(true);
+      this.markInitialized();
       return;
     }
 
@@ -29,12 +33,16 @@ export class AuthService {
         this.session.set(data.session);
       })
       .finally(() => {
-        this.initialized.set(true);
+        this.markInitialized();
       });
 
     this.authClient.onAuthStateChange((_, session) => {
       this.session.set(session);
     });
+  }
+
+  async waitUntilInitialized(): Promise<void> {
+    await this.initializedPromise;
   }
 
   async signInWithPassword(email: string, password: string): Promise<string | null> {
@@ -53,5 +61,10 @@ export class AuthService {
 
     const { error } = await this.authClient.signOut();
     return error?.message ?? null;
+  }
+
+  private markInitialized(): void {
+    this.initialized.set(true);
+    this.resolveInitialized();
   }
 }
