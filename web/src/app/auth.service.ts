@@ -15,8 +15,8 @@ export class AuthService {
   readonly user = computed(() => this.session()?.user ?? null);
   readonly isAuthenticated = computed(() => this.user() !== null);
 
-  private readonly client = this.isConfigured() ? createClient(this.supabaseUrl, this.supabasePublishableKey) : null;
-  private readonly authClient: GoTrueClient | null = this.client ? (this.client.auth as GoTrueClient) : null;
+  readonly supabase = this.isConfigured() ? createClient(this.supabaseUrl, this.supabasePublishableKey) : null;
+  private readonly authClient: GoTrueClient | null = this.supabase ? (this.supabase.auth as GoTrueClient) : null;
   private readonly initializedPromise = new Promise<void>((resolve) => {
     this.resolveInitialized = resolve;
   });

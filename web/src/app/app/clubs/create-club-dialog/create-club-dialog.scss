@@ -1,0 +1,9 @@
+.create-club-form {
+  display: flex;
+  flex-direction: column;
+  min-width: 320px;
+}
+
+.error-message {
+  color: var(--mat-sys-error);
+}

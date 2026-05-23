@@ -12,6 +12,16 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'clubs',
+    loadComponent: () => import('./app/clubs/clubs').then((module) => module.ClubsPage),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'clubs/:id',
+    loadComponent: () => import('./app/clubs/club-detail/club-detail').then((module) => module.ClubDetailPage),
+    canActivate: [authGuard],
+  },
+  {
     path: '**',
     redirectTo: '',
   },

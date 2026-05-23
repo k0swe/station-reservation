@@ -1,0 +1,11 @@
+.clubs-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+
+  h1 {
+    margin: 0;
+    flex: 1;
+  }
+}

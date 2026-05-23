@@ -1,0 +1,24 @@
+<div class="clubs-header">
+  <h1>Clubs</h1>
+  <button matButton="filled" (click)="openCreateDialog()">
+    <mat-icon>add</mat-icon>
+    Create club
+  </button>
+</div>
+
+@if (isLoading()) {
+  <mat-spinner />
+} @else if (errorMessage(); as error) {
+  <p role="alert">{{ error }}</p>
+} @else if (clubs()?.length === 0) {
+  <p>No clubs found. Create one to get started!</p>
+} @else {
+  <mat-nav-list>
+    @for (club of clubs(); track club.id) {
+      <a mat-list-item [routerLink]="['/clubs', club.id]">
+        <mat-icon matListItemIcon>groups</mat-icon>
+        <span matListItemTitle>{{ club.name }}</span>
+      </a>
+    }
+  </mat-nav-list>
+}
