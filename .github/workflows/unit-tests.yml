@@ -25,8 +25,8 @@ jobs:
         with:
           version: latest
 
-      - name: Start local Supabase services
-        run: supabase start
+      - name: Start local Supabase Postgres
+        run: supabase db start
 
       - name: Run backend SQL checks
         run: supabase db lint
