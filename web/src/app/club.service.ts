@@ -7,6 +7,25 @@ export interface Club {
   created_at: string;
 }
 
+export interface Resource {
+  id: string;
+  club_id: string;
+  name: string;
+  description: string | null;
+  block_size_minutes: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateResourceInput {
+  clubId: string;
+  name: string;
+  description: string | null;
+  blockSizeMinutes: number;
+  isActive?: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ClubService {
   private readonly auth = inject(AuthService);
@@ -37,5 +56,56 @@ export class ClubService {
     }
     const { data, error } = await this.supabase.from('clubs').select('*').eq('id', id).single();
     return { data: data as Club | null, error: error?.message ?? null };
+  }
+
+  async listClubResources(clubId: string): Promise<{ data: Resource[] | null; error: string | null }> {
+    if (!this.supabase) {
+      return { data: null, error: 'Supabase is not configured.' };
+    }
+
+    const { data, error } = await this.supabase.from('resources').select('*').eq('club_id', clubId).order('name');
+    return { data: data as Resource[] | null, error: error?.message ?? null };
+  }
+
+  async isClubAdmin(clubId: string): Promise<{ data: boolean; error: string | null }> {
+    if (!this.supabase) {
+      return { data: false, error: 'Supabase is not configured.' };
+    }
+
+    const userId = this.auth.user()?.id;
+    if (!userId) {
+      return { data: false, error: 'Not authenticated.' };
+    }
+
+    const { data, error } = await this.supabase
+      .from('memberships')
+      .select('id')
+      .eq('club_id', clubId)
+      .eq('user_id', userId)
+      .eq('role', 'admin')
+      .eq('status', 'approved')
+      .maybeSingle();
+
+    return { data: Boolean(data), error: error?.message ?? null };
+  }
+
+  async createResource(input: CreateResourceInput): Promise<{ data: Resource | null; error: string | null }> {
+    if (!this.supabase) {
+      return { data: null, error: 'Supabase is not configured.' };
+    }
+
+    const { data, error } = await this.supabase
+      .from('resources')
+      .insert({
+        club_id: input.clubId,
+        name: input.name,
+        description: input.description,
+        block_size_minutes: input.blockSizeMinutes,
+        is_active: input.isActive ?? true,
+      })
+      .select()
+      .single();
+
+    return { data: data as Resource | null, error: error?.message ?? null };
   }
 }
