@@ -42,16 +42,16 @@ describe('App', () => {
     expect(compiled.querySelector('mat-toolbar')?.textContent).toContain('Club Shack');
   });
 
-  it('should show a login link in the toolbar and not in the sidenav when signed out', async () => {
+  it('should show a login avatar button in the toolbar and not in the sidenav when signed out', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('mat-toolbar a[href="/login"]')?.textContent).toContain('Login');
+    expect(compiled.querySelector('mat-toolbar button[aria-label="Login"]')).not.toBeNull();
     expect(compiled.querySelector('mat-nav-list')?.textContent).not.toContain('Login');
   });
 
-  it('should show the user email in the toolbar when signed in', async () => {
+  it('should show an account menu trigger in the toolbar when signed in', async () => {
     auth.session.set({ user: { email: 'user@example.com' } });
 
     const fixture = TestBed.createComponent(App);
@@ -59,7 +59,7 @@ describe('App', () => {
     await fixture.whenStable();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.user-email')?.textContent).toContain('user@example.com');
-    expect(compiled.querySelector('mat-toolbar a[href="/login"]')).toBeNull();
+    expect(compiled.querySelector('mat-toolbar button[aria-label="Open account menu"]')).not.toBeNull();
+    expect(compiled.querySelector('mat-toolbar button[aria-label="Login"]')).toBeNull();
   });
 });
