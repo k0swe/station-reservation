@@ -10,6 +10,8 @@
   <span class="toolbar-spacer"></span>
   @if (auth.initialized() && auth.isAuthenticated()) {
     <span class="user-email">{{ auth.user()?.email }}</span>
+  } @else if (auth.initialized()) {
+    <a matButton routerLink="/login">Login</a>
   }
 </mat-toolbar>
 
@@ -19,10 +21,6 @@
       <a mat-list-item routerLink="/" routerLinkActive="active-nav-item" [routerLinkActiveOptions]="{ exact: true }">
         <mat-icon matListItemIcon>home</mat-icon>
         <span matListItemTitle>Home</span>
-      </a>
-      <a mat-list-item routerLink="/login" routerLinkActive="active-nav-item">
-        <mat-icon matListItemIcon>login</mat-icon>
-        <span matListItemTitle>Login</span>
       </a>
     </mat-nav-list>
   </mat-sidenav>

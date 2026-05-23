@@ -18,11 +18,15 @@ class MockAuthService {
 }
 
 describe('App', () => {
+  let auth: MockAuthService;
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
       providers: [provideRouter(routes), { provide: AuthService, useClass: MockAuthService }],
     }).compileComponents();
+
+    auth = TestBed.inject(AuthService) as unknown as MockAuthService;
   });
 
   it('should create the app', () => {
@@ -36,5 +40,26 @@ describe('App', () => {
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('mat-toolbar')?.textContent).toContain('Station Reservation');
+  });
+
+  it('should show a login link in the toolbar and not in the sidenav when signed out', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('mat-toolbar a[href="/login"]')?.textContent).toContain('Login');
+    expect(compiled.querySelector('mat-nav-list')?.textContent).not.toContain('Login');
+  });
+
+  it('should show the user email in the toolbar when signed in', async () => {
+    auth.session.set({ user: { email: 'user@example.com' } });
+
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('.user-email')?.textContent).toContain('user@example.com');
+    expect(compiled.querySelector('mat-toolbar a[href="/login"]')).toBeNull();
   });
 });

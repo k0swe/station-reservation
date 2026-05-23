@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
@@ -12,6 +13,7 @@ import { AuthService } from './auth.service';
     RouterLink,
     RouterLinkActive,
     RouterOutlet,
+    MatButtonModule,
     MatToolbarModule,
     MatSidenavModule,
     MatListModule,
