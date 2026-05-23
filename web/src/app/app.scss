@@ -15,3 +15,14 @@
 .content {
   padding: 1rem;
 }
+
+.auth-card {
+  max-width: 28rem;
+  margin-top: 1rem;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
