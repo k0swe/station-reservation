@@ -48,11 +48,13 @@ describe('LoginPage', () => {
   });
 
   it('uses the latest redirectTo query param after signing in', async () => {
-    TestBed.createComponent(LoginPage);
+    const fixture = TestBed.createComponent(LoginPage);
+    fixture.detectChanges();
     redirectTo = '/clubs';
     auth.session.set({ user: { email: 'user@example.com' } });
 
-    await Promise.resolve();
+    fixture.detectChanges();
+    await fixture.whenStable();
 
     expect(router.navigateByUrl).toHaveBeenCalledWith('/clubs', { replaceUrl: true });
   });
