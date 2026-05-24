@@ -1,5 +1,7 @@
+import { BreakpointObserver } from '@angular/cdk/layout';
 import { DOCUMENT } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -8,11 +10,13 @@ import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { map } from 'rxjs';
 import { AuthService } from './auth.service';
 
 type ThemePreference = 'light' | 'system' | 'dark';
 
 const THEME_STORAGE_KEY = 'club-shack-theme-preference';
+const MOBILE_NAV_MEDIA_QUERY = '(max-width: 767px)';
 
 @Component({
   selector: 'app-root',
@@ -36,9 +40,16 @@ export class App {
   protected readonly auth = inject(AuthService);
   protected readonly title = signal('Club Shack');
   protected readonly sidenavOpen = signal(true);
+  private readonly breakpointObserver = inject(BreakpointObserver);
+  protected readonly isNarrowScreen = toSignal(
+    this.breakpointObserver
+      .observe(MOBILE_NAV_MEDIA_QUERY)
+      .pipe(map((state) => state.matches)),
+    { initialValue: this.breakpointObserver.isMatched(MOBILE_NAV_MEDIA_QUERY) },
+  );
   protected readonly themePreference = signal<ThemePreference>(this.getInitialThemePreference());
-
   private readonly router = inject(Router);
+  private readonly document = inject(DOCUMENT);
   private readonly document = inject(DOCUMENT);
 
   constructor() {
@@ -46,6 +57,10 @@ export class App {
       const preference = this.themePreference();
       this.applyThemePreference(preference);
       this.persistThemePreference(preference);
+    });
+
+    effect(() => {
+      this.sidenavOpen.set(!this.isNarrowScreen());
     });
   }
 
