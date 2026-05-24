@@ -4,7 +4,8 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { MatMenuModule } from '@angular/material/menu';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from './auth.service';
 
 @Component({
@@ -18,6 +19,7 @@ import { AuthService } from './auth.service';
     MatSidenavModule,
     MatListModule,
     MatIconModule,
+    MatMenuModule,
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
@@ -25,6 +27,16 @@ import { AuthService } from './auth.service';
 })
 export class App {
   protected readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
   protected readonly title = signal('Club Shack');
   protected readonly sidenavOpen = signal(true);
+
+  protected async signOut(): Promise<void> {
+    const errorMessage = await this.auth.signOut();
+    if (errorMessage) {
+      return;
+    }
+
+    await this.router.navigate(['/login']);
+  }
 }

@@ -1,6 +1,7 @@
 import { computed, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
+import { vi } from 'vitest';
 import { App } from './app';
 import { routes } from './app.routes';
 import { AuthService } from './auth.service';
@@ -42,16 +43,16 @@ describe('App', () => {
     expect(compiled.querySelector('mat-toolbar')?.textContent).toContain('Club Shack');
   });
 
-  it('should show a login link in the toolbar and not in the sidenav when signed out', async () => {
+  it('should show a login avatar button in the toolbar and not in the sidenav when signed out', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('mat-toolbar a[href="/login"]')?.textContent).toContain('Login');
+    expect(compiled.querySelector('mat-toolbar button[aria-label="Login"]')).not.toBeNull();
     expect(compiled.querySelector('mat-nav-list')?.textContent).not.toContain('Login');
   });
 
-  it('should show the user email in the toolbar when signed in', async () => {
+  it('should show an account menu trigger in the toolbar when signed in', async () => {
     auth.session.set({ user: { email: 'user@example.com' } });
 
     const fixture = TestBed.createComponent(App);
@@ -59,7 +60,18 @@ describe('App', () => {
     await fixture.whenStable();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.user-email')?.textContent).toContain('user@example.com');
-    expect(compiled.querySelector('mat-toolbar a[href="/login"]')).toBeNull();
+    expect(compiled.querySelector('mat-toolbar button[aria-label="Open account menu"]')).not.toBeNull();
+    expect(compiled.querySelector('mat-toolbar button[aria-label="Login"]')).toBeNull();
+  });
+
+  it('should navigate to login after successful sign out', async () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance as unknown as { signOut: () => Promise<void> };
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    await app.signOut();
+
+    expect(navigateSpy).toHaveBeenCalledWith(['/login']);
   });
 });
