@@ -1,25 +1,27 @@
-<mat-card class="pitch-card">
-  <mat-card-header>
-    <mat-card-title>Club Shack</mat-card-title>
-    <mat-card-subtitle>Reserve shared stations without the scheduling chaos.</mat-card-subtitle>
-  </mat-card-header>
-  <mat-card-content>
-    <p>
-      Club Shack gives ham radio clubs a lightweight way to manage shared-station reservations when
-      enterprise groupware is unavailable.
-    </p>
-    <ul>
-      <li>Manage each club as its own isolated workspace.</li>
-      <li>Create reservable resources with configurable time blocks.</li>
-      <li>Approve member access before reservations are allowed.</li>
-      <li>Prevent overlapping reservations automatically.</li>
-    </ul>
-  </mat-card-content>
-  <mat-card-actions>
-    @if (auth.initialized() && auth.isAuthenticated()) {
-      <button matButton="filled" type="button" routerLink="/clubs">Go to clubs</button>
-    } @else {
-      <button matButton="filled" type="button" routerLink="/login">Sign in</button>
-    }
-  </mat-card-actions>
-</mat-card>
+<section class="app-page">
+  <h1 class="app-page__title">Club Shack</h1>
+  <mat-card class="pitch-card" appearance="outlined">
+    <mat-card-header>
+      <mat-card-title>Reserve shared stations without the scheduling chaos.</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <p>
+        Club Shack gives ham radio clubs a lightweight way to manage shared-station reservations when
+        enterprise groupware is unavailable.
+      </p>
+      <ul>
+        <li>Manage each club as its own isolated workspace.</li>
+        <li>Create reservable resources with configurable time blocks.</li>
+        <li>Approve member access before reservations are allowed.</li>
+        <li>Prevent overlapping reservations automatically.</li>
+      </ul>
+    </mat-card-content>
+    <mat-card-actions>
+      @if (auth.initialized() && auth.isAuthenticated()) {
+        <button matButton="filled" type="button" routerLink="/clubs">Go to clubs</button>
+      } @else {
+        <button matButton="filled" type="button" routerLink="/login">Sign in</button>
+      }
+    </mat-card-actions>
+  </mat-card>
+</section>

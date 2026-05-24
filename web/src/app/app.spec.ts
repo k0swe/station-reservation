@@ -20,14 +20,23 @@ class MockAuthService {
 
 describe('App', () => {
   let auth: MockAuthService;
+  const themeStorageKey = 'club-shack-theme-preference';
 
   beforeEach(async () => {
+    localStorage.removeItem(themeStorageKey);
+    document.documentElement.removeAttribute('data-theme');
+
     await TestBed.configureTestingModule({
       imports: [App],
       providers: [provideRouter(routes), { provide: AuthService, useClass: MockAuthService }],
     }).compileComponents();
 
     auth = TestBed.inject(AuthService) as unknown as MockAuthService;
+  });
+
+  afterEach(() => {
+    localStorage.removeItem(themeStorageKey);
+    document.documentElement.removeAttribute('data-theme');
   });
 
   it('should create the app', () => {
@@ -41,6 +50,16 @@ describe('App', () => {
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('mat-toolbar')?.textContent).toContain('Club Shack');
+  });
+
+  it('should render tri-state theme controls with system default', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    const toggleButtons = compiled.querySelectorAll('mat-button-toggle');
+    expect(toggleButtons).toHaveLength(3);
+    expect(compiled.textContent).toContain('System default');
   });
 
   it('keeps the home route public without an auth guard', () => {
@@ -78,5 +97,23 @@ describe('App', () => {
     await app.signOut();
 
     expect(navigateSpy).toHaveBeenCalledWith(['/login']);
+  });
+
+  it('should set html data-theme for explicit light/dark and clear it for system', async () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance as unknown as { setThemePreference: (value: string) => void };
+    await fixture.whenStable();
+
+    app.setThemePreference('dark');
+    fixture.detectChanges();
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+
+    app.setThemePreference('light');
+    fixture.detectChanges();
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+
+    app.setThemePreference('system');
+    fixture.detectChanges();
+    expect(document.documentElement.getAttribute('data-theme')).toBeNull();
   });
 });
