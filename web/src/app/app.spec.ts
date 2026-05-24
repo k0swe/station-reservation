@@ -1,6 +1,7 @@
 import { computed, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
+import { vi } from 'vitest';
 import { App } from './app';
 import { routes } from './app.routes';
 import { AuthService } from './auth.service';
@@ -61,5 +62,16 @@ describe('App', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('mat-toolbar button[aria-label="Open account menu"]')).not.toBeNull();
     expect(compiled.querySelector('mat-toolbar button[aria-label="Login"]')).toBeNull();
+  });
+
+  it('should navigate to login after successful sign out', async () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance as unknown as { signOut: () => Promise<void> };
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    await app.signOut();
+
+    expect(navigateSpy).toHaveBeenCalledWith(['/login']);
   });
 });
