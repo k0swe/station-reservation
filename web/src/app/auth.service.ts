@@ -5,6 +5,7 @@ import { environment } from '../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private static readonly fallbackAppOrigin = 'https://clubshack.net';
   private readonly supabaseUrl = environment.supabaseUrl.trim();
   private readonly supabasePublishableKey = environment.supabasePublishableKey.trim();
   private resolveInitialized!: () => void;
@@ -63,7 +64,13 @@ export class AuthService {
       return 'Supabase is not configured.';
     }
 
-    const { error } = await this.authClient.signUp({ email, password });
+    const { error } = await this.authClient.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: this.buildRedirectUrl('/'),
+      },
+    });
     return error?.message ?? null;
   }
 
@@ -76,11 +83,12 @@ export class AuthService {
     return error?.message ?? null;
   }
 
-  async resetPasswordForEmail(email: string, redirectTo: string): Promise<string | null> {
+  async resetPasswordForEmail(email: string): Promise<string | null> {
     if (!this.authClient) {
       return 'Supabase is not configured.';
     }
 
+    const redirectTo = this.buildRedirectUrl('/reset-password');
     const { error } = await this.authClient.resetPasswordForEmail(email, { redirectTo });
     return error?.message ?? null;
   }
@@ -106,5 +114,32 @@ export class AuthService {
   private markInitialized(): void {
     this.initialized.set(true);
     this.resolveInitialized();
+  }
+
+  private buildRedirectUrl(path: string): string {
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+    return `${this.resolveAppOrigin()}${normalizedPath}`;
+  }
+
+  private resolveAppOrigin(): string {
+    if (typeof window === 'undefined') {
+      return AuthService.fallbackAppOrigin;
+    }
+
+    const origin = window.location.origin?.trim();
+    if (!origin) {
+      return AuthService.fallbackAppOrigin;
+    }
+
+    try {
+      const url = new URL(origin);
+      if (url.protocol === 'http:' || url.protocol === 'https:') {
+        return url.origin;
+      }
+    } catch {
+      return AuthService.fallbackAppOrigin;
+    }
+
+    return AuthService.fallbackAppOrigin;
   }
 }

@@ -33,8 +33,7 @@ export class ForgotPasswordPage {
     this.isSubmitting.set(true);
 
     const { email } = this.forgotForm.getRawValue();
-    const resetUrl = `${window.location.origin}/reset-password`;
-    const errorMessage = await this.auth.resetPasswordForEmail(email, resetUrl);
+    const errorMessage = await this.auth.resetPasswordForEmail(email);
     if (errorMessage) {
       this.authMessage.set(errorMessage);
     } else {
