@@ -13,6 +13,7 @@ import {
   ClubReservation,
   ClubService,
   Membership,
+  MembershipRequest,
   Resource,
   ResourceAccessApproval,
   ResourceAccessRequest,
@@ -75,6 +76,13 @@ export class ClubDetailPage implements OnInit {
   protected readonly actioningApprovalId = signal<string | null>(null);
   protected readonly approvalActionError = signal<string | null>(null);
 
+  /** All membership requests for the club, visible to admins. */
+  protected readonly membershipRequests = signal<MembershipRequest[] | null>(null);
+  protected readonly membershipRequestsError = signal<string | null>(null);
+  /** Which membership ID is being actioned (approve/deny) right now. */
+  protected readonly actioningMembershipId = signal<string | null>(null);
+  protected readonly membershipActionError = signal<string | null>(null);
+
   protected readonly selectedDateLabel = computed(() => {
     return this.selectedDate().toLocaleDateString(undefined, {
       weekday: 'long',
@@ -130,7 +138,7 @@ export class ClubDetailPage implements OnInit {
     // Load reservations, user approvals, and (for admins) access requests in parallel.
     const parallelLoads: Promise<void>[] = [this.loadReservations(), this.loadUserApprovals()];
     if (isAdminResult.data) {
-      parallelLoads.push(this.loadAccessRequests());
+      parallelLoads.push(this.loadAccessRequests(), this.loadMembershipRequests());
     }
     await Promise.all(parallelLoads);
   }
@@ -276,6 +284,29 @@ export class ClubDetailPage implements OnInit {
     await Promise.all([this.loadAccessRequests(), this.loadUserApprovals()]);
   }
 
+  protected async approveMembership(membershipId: string): Promise<void> {
+    await this.setMembershipRequestStatus(membershipId, 'approved');
+  }
+
+  protected async denyMembership(membershipId: string): Promise<void> {
+    await this.setMembershipRequestStatus(membershipId, 'denied');
+  }
+
+  private async setMembershipRequestStatus(membershipId: string, status: 'approved' | 'denied'): Promise<void> {
+    this.actioningMembershipId.set(membershipId);
+    this.membershipActionError.set(null);
+
+    const { error } = await this.clubService.setMembershipStatus(membershipId, status);
+    this.actioningMembershipId.set(null);
+
+    if (error) {
+      this.membershipActionError.set(error);
+      return;
+    }
+
+    await this.loadMembershipRequests();
+  }
+
   private async loadReservations(): Promise<void> {
     const date = this.selectedDate();
     const from = new Date(date.getFullYear(), date.getMonth(), date.getDate()); // local midnight
@@ -298,6 +329,12 @@ export class ClubDetailPage implements OnInit {
     const { data, error } = await this.clubService.listClubResourceAccessRequests(this.clubId);
     this.accessRequests.set(data);
     this.accessRequestsError.set(error);
+  }
+
+  private async loadMembershipRequests(): Promise<void> {
+    const { data, error } = await this.clubService.listClubMembershipRequests(this.clubId);
+    this.membershipRequests.set(data);
+    this.membershipRequestsError.set(error);
   }
 
   private localMidnightToday(): Date {
