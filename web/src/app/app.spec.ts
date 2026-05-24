@@ -62,6 +62,11 @@ describe('App', () => {
     expect(compiled.textContent).toContain('System default');
   });
 
+  it('keeps the home route public without an auth guard', () => {
+    const homeRoute = routes.find((route) => route.path === '');
+    expect(homeRoute?.canActivate).toBeUndefined();
+  });
+
   it('should show a login avatar button in the toolbar and not in the sidenav when signed out', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();

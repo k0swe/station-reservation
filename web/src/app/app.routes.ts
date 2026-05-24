@@ -9,7 +9,6 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () => import('./app/home/home').then((module) => module.HomePage),
-    canActivate: [authGuard],
   },
   {
     path: 'clubs',
@@ -19,6 +18,11 @@ export const routes: Routes = [
   {
     path: 'clubs/:id',
     loadComponent: () => import('./app/clubs/club-detail/club-detail').then((module) => module.ClubDetailPage),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'profile',
+    loadComponent: () => import('./app/profile/profile').then((module) => module.ProfilePage),
     canActivate: [authGuard],
   },
   {
