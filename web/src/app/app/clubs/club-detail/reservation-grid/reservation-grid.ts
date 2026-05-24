@@ -22,7 +22,12 @@ export class ReservationGridComponent {
   readonly isSubmitting = input(false);
   /** Set of resource IDs the current user has approved access to. */
   readonly approvedResourceIds = input.required<Set<string>>();
+  /** The current user's membership ID (null if not a member). */
+  readonly currentUserMembershipId = input<string | null>(null);
+  /** Whether the current user is a club admin. */
+  readonly isAdmin = input(false);
   readonly slotClick = output<{ resourceId: string; startsAt: Date; endsAt: Date }>();
+  readonly reservationCancel = output<{ reservationId: string }>();
 
   /**
    * Row interval in minutes: the minimum block_size_minutes across all resources.
@@ -90,9 +95,27 @@ export class ReservationGridComponent {
     return this.approvedResourceIds().has(resource.id);
   }
 
+  /**
+   * Returns true when the current user can cancel this reservation:
+   * they own it OR they are a club admin, and the reservation hasn't started yet.
+   */
+  protected isCancellable(reservation: ClubReservation): boolean {
+    if (new Date(reservation.starts_at) <= new Date()) return false;
+    if (this.isAdmin()) return true;
+    return reservation.membership_id === this.currentUserMembershipId();
+  }
+
   protected onSlotClick(resource: Resource, slot: TimeSlot): void {
     const startsAt = slot.startsAt;
     const endsAt = new Date(startsAt.getTime() + resource.block_size_minutes * 60 * 1000);
     this.slotClick.emit({ resourceId: resource.id, startsAt, endsAt });
+  }
+
+  protected onReservationClick(reservation: ClubReservation): void {
+    const owner = this.getOwnerLabel(reservation);
+    const confirmed = window.confirm(`Cancel the reservation for ${owner}?`);
+    if (confirmed) {
+      this.reservationCancel.emit({ reservationId: reservation.id });
+    }
   }
 }

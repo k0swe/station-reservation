@@ -63,6 +63,17 @@
   color: var(--mat-sys-on-primary-container);
   font: var(--mat-sys-label-medium);
   white-space: nowrap;
+
+  &.reservation-chip--cancellable {
+    cursor: pointer;
+    border: none;
+    text-decoration: underline dotted;
+
+    &:hover:not(:disabled) {
+      background-color: var(--mat-sys-error-container);
+      color: var(--mat-sys-on-error-container);
+    }
+  }
 }
 
 .open-slot-btn {

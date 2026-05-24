@@ -323,4 +323,20 @@ export class ClubService {
 
     return { data: data as Membership | null, error: error?.message ?? null };
   }
+
+  async cancelReservation(
+    reservationId: string,
+    notes?: string,
+  ): Promise<{ data: ClubReservation | null; error: string | null }> {
+    if (!this.supabase) {
+      return { data: null, error: 'Supabase is not configured.' };
+    }
+
+    const { data, error } = await this.supabase.rpc('cancel_reservation', {
+      p_reservation_id: reservationId,
+      p_notes: notes ?? null,
+    });
+
+    return { data: data as ClubReservation | null, error: error?.message ?? null };
+  }
 }

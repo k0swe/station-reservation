@@ -61,13 +61,20 @@
         <p role="alert" class="error-message">{{ reservationError }}</p>
       }
 
+      @if (cancelReservationError(); as cancelReservationError) {
+        <p role="alert" class="error-message">{{ cancelReservationError }}</p>
+      }
+
       <app-reservation-grid
         [resources]="activeResources()"
         [reservations]="reservations() ?? []"
         [selectedDate]="selectedDate()"
-        [isSubmitting]="isCreatingReservation()"
+        [isSubmitting]="isCreatingReservation() || isCancellingReservation()"
         [approvedResourceIds]="approvedResourceIds()"
+        [currentUserMembershipId]="userMembership()?.id ?? null"
+        [isAdmin]="isClubAdmin()"
         (slotClick)="onSlotClick($event)"
+        (reservationCancel)="onReservationCancel($event)"
       />
     </section>
 
