@@ -50,7 +50,6 @@ export class App {
   protected readonly themePreference = signal<ThemePreference>(this.getInitialThemePreference());
   private readonly router = inject(Router);
   private readonly document = inject(DOCUMENT);
-  private readonly document = inject(DOCUMENT);
 
   constructor() {
     effect(() => {
