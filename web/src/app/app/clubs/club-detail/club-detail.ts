@@ -126,17 +126,24 @@ export class ClubDetailPage implements OnInit {
   private clubId = '';
 
   async ngOnInit(): Promise<void> {
-    this.clubId = this.route.snapshot.paramMap.get('id') ?? '';
+    const clubIdentifier = this.route.snapshot.paramMap.get('id') ?? '';
+    const clubResult = await this.clubService.getClub(clubIdentifier);
 
-    const [clubResult, resourcesResult, isAdminResult, membershipResult] = await Promise.all([
-      this.clubService.getClub(this.clubId),
+    this.club.set(clubResult.data);
+    this.errorMessage.set(clubResult.error);
+    this.clubId = clubResult.data?.id ?? '';
+
+    if (!this.clubId || clubResult.error) {
+      this.isLoading.set(false);
+      return;
+    }
+
+    const [resourcesResult, isAdminResult, membershipResult] = await Promise.all([
       this.clubService.listClubResources(this.clubId),
       this.clubService.isClubAdmin(this.clubId),
       this.clubService.getUserMembership(this.clubId),
     ]);
 
-    this.club.set(clubResult.data);
-    this.errorMessage.set(clubResult.error);
     this.resources.set(resourcesResult.data);
     this.resourcesError.set(resourcesResult.error);
     this.isClubAdmin.set(isAdminResult.data);

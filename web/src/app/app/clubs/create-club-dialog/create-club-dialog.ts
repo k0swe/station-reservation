@@ -26,6 +26,10 @@ export class CreateClubDialog {
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly form = new FormGroup({
     name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    slug: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.pattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)],
+    }),
   });
 
   private readonly clubService = inject(ClubService);
@@ -40,8 +44,9 @@ export class CreateClubDialog {
     this.errorMessage.set(null);
     this.isSubmitting.set(true);
 
-    const { name } = this.form.getRawValue();
-    const { data, error } = await this.clubService.createClub(name);
+    const { name, slug } = this.form.getRawValue();
+    const normalizedSlug = slug.trim().toLowerCase();
+    const { data, error } = await this.clubService.createClub(name, normalizedSlug || null);
 
     this.isSubmitting.set(false);
 

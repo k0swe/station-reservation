@@ -16,7 +16,7 @@
   } @else {
     <mat-nav-list>
       @for (club of clubs(); track club.id) {
-        <a mat-list-item [routerLink]="['/clubs', club.id]">
+        <a mat-list-item [routerLink]="['/clubs', club.slug ?? club.id]">
           <mat-icon matListItemIcon>groups</mat-icon>
           <span matListItemTitle>{{ club.name }}</span>
         </a>

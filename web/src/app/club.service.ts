@@ -4,6 +4,7 @@ import { AuthService } from './auth.service';
 export interface Club {
   id: string;
   name: string;
+  slug: string | null;
   created_at: string;
 }
 
@@ -93,20 +94,42 @@ export class ClubService {
     return { data: data as Club[] | null, error: error?.message ?? null };
   }
 
-  async createClub(name: string): Promise<{ data: Club | null; error: string | null }> {
+  async createClub(name: string, slug: string | null): Promise<{ data: Club | null; error: string | null }> {
     if (!this.supabase) {
       return { data: null, error: 'Supabase is not configured.' };
     }
-    const { data, error } = await this.supabase.rpc('create_club', { p_name: name });
+    const { data, error } = await this.supabase.rpc('create_club', { p_name: name, p_slug: slug });
     return { data: data as Club | null, error: error?.message ?? null };
   }
 
-  async getClub(id: string): Promise<{ data: Club | null; error: string | null }> {
+  async getClub(identifier: string): Promise<{ data: Club | null; error: string | null }> {
     if (!this.supabase) {
       return { data: null, error: 'Supabase is not configured.' };
     }
-    const { data, error } = await this.supabase.from('clubs').select('*').eq('id', id).single();
+
+    const normalizedIdentifier = identifier.trim();
+    const { data: slugMatch, error: slugError } = await this.supabase
+      .from('clubs')
+      .select('*')
+      .eq('slug', normalizedIdentifier)
+      .maybeSingle();
+    if (slugError) {
+      return { data: null, error: slugError.message };
+    }
+    if (slugMatch) {
+      return { data: slugMatch as Club, error: null };
+    }
+
+    if (!this.isUuid(normalizedIdentifier)) {
+      return { data: null, error: null };
+    }
+
+    const { data, error } = await this.supabase.from('clubs').select('*').eq('id', normalizedIdentifier).maybeSingle();
     return { data: data as Club | null, error: error?.message ?? null };
+  }
+
+  private isUuid(value: string): boolean {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
   }
 
   async listClubResources(clubId: string): Promise<{ data: Resource[] | null; error: string | null }> {
