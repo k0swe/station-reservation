@@ -1,0 +1,77 @@
+<h1>Profile</h1>
+
+@if (isLoading()) {
+  <mat-spinner />
+} @else if (errorMessage(); as error) {
+  <p role="alert">{{ error }}</p>
+} @else {
+  <div class="profile-layout">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Edit account</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <form class="profile-form" [formGroup]="form" (ngSubmit)="saveProfile()">
+          <mat-form-field>
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="email" readonly />
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Display name</mat-label>
+            <input matInput formControlName="displayName" autocomplete="name" />
+            @if (form.controls.displayName.hasError('required')) {
+              <mat-error>Display name is required.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Callsign</mat-label>
+            <input matInput formControlName="callsign" autocomplete="off" />
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Phone number</mat-label>
+            <input matInput formControlName="phoneNumber" autocomplete="tel" />
+          </mat-form-field>
+
+          <mat-card-actions class="profile-actions">
+            <button matButton="filled" type="submit" [disabled]="isSaving()">
+              @if (isSaving()) {
+                <mat-spinner diameter="18" />
+              } @else {
+                Save profile
+              }
+            </button>
+          </mat-card-actions>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Club memberships</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (!memberships() || memberships()?.length === 0) {
+          <p>No memberships yet.</p>
+        } @else {
+          <mat-list>
+            @for (membership of memberships(); track membership.id) {
+              <mat-list-item lines="2">
+                <div matListItemTitle>{{ membership.club?.name ?? 'Unknown club' }}</div>
+                <div matListItemLine>
+                  {{ roleLabel(membership.role) }} • {{ statusLabel(membership.status) }}
+                </div>
+              </mat-list-item>
+            }
+          </mat-list>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+}
+
+@if (saveMessage(); as saveMessage) {
+  <p role="status">{{ saveMessage }}</p>
+}
