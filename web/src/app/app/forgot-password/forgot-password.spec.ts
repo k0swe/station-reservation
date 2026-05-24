@@ -38,7 +38,7 @@ describe('ForgotPasswordPage', () => {
     page.forgotForm.setValue({ email: 'user@example.com' });
     await page.sendResetEmail();
 
-    expect(auth.resetPasswordForEmail).toHaveBeenCalled();
+    expect(auth.resetPasswordForEmail).toHaveBeenCalledWith('user@example.com');
     expect(page.emailSent()).toBe(true);
   });
 
