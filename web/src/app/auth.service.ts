@@ -63,6 +63,15 @@ export class AuthService {
     return error?.message ?? null;
   }
 
+  async updateUserMetadata(metadata: Record<string, string | null>): Promise<string | null> {
+    if (!this.authClient) {
+      return 'Supabase is not configured.';
+    }
+
+    const { error } = await this.authClient.updateUser({ data: metadata });
+    return error?.message ?? null;
+  }
+
   private markInitialized(): void {
     this.initialized.set(true);
     this.resolveInitialized();
