@@ -56,8 +56,13 @@
 }
 
 .reservation-chip {
-  display: inline-block;
-  padding: 0.2rem 0.6rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 2.5rem;
+  box-sizing: border-box;
+  padding: 0 0.6rem;
   border-radius: 1rem;
   background-color: var(--mat-sys-primary-container);
   color: var(--mat-sys-on-primary-container);
@@ -78,4 +83,7 @@
 
 .open-slot-btn {
   width: 100%;
+  min-height: 2.5rem;
+  height: 2.5rem;
+  --mdc-text-button-container-height: 2.5rem;
 }
