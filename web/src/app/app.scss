@@ -18,6 +18,8 @@
   width: 220px;
   border-right: 1px solid var(--mat-sys-outline-variant);
   background-color: var(--mat-sys-surface-container-low);
+  display: flex;
+  flex-direction: column;
 }
 
 .active-nav-item {
@@ -35,7 +37,7 @@
 }
 
 .theme-toggle {
-  margin-right: 0.5rem;
+  margin: auto auto 0.75rem;
 }
 
 .account-avatar {
