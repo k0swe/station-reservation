@@ -334,11 +334,34 @@ export class ClubDetailPage implements OnInit {
     await this.setMembershipRequestStatus(membershipId, 'denied');
   }
 
+  protected async promoteMember(membershipId: string): Promise<void> {
+    await this.setMembershipRole(membershipId, 'admin');
+  }
+
+  protected async demoteAdmin(membershipId: string): Promise<void> {
+    await this.setMembershipRole(membershipId, 'member');
+  }
+
   private async setMembershipRequestStatus(membershipId: string, status: 'approved' | 'denied'): Promise<void> {
     this.actioningMembershipId.set(membershipId);
     this.membershipActionError.set(null);
 
     const { error } = await this.clubService.setMembershipStatus(membershipId, status);
+    this.actioningMembershipId.set(null);
+
+    if (error) {
+      this.membershipActionError.set(error);
+      return;
+    }
+
+    await this.loadMembershipRequests();
+  }
+
+  private async setMembershipRole(membershipId: string, role: 'admin' | 'member'): Promise<void> {
+    this.actioningMembershipId.set(membershipId);
+    this.membershipActionError.set(null);
+
+    const { error } = await this.clubService.setMemberRole(membershipId, role);
     this.actioningMembershipId.set(null);
 
     if (error) {

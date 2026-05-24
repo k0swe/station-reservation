@@ -244,27 +244,55 @@
                         {{ req.user_display_name ?? req.user_callsign ?? req.user_id }}
                       </div>
                       <div matListItemLine class="request-status-badge {{ req.status }}">
-                        {{ req.status | titlecase }}
+                        {{ req.status | titlecase }} • {{ req.role | titlecase }}
                       </div>
                       <div matListItemMeta class="request-actions">
-                        <button
-                          matButton="filled"
-                          [disabled]="actioningMembershipId() === req.id"
-                          (click)="approveMembership(req.id)"
-                        >
-                          @if (actioningMembershipId() === req.id) {
-                            <mat-spinner diameter="16" />
+                        @if (req.status === 'approved') {
+                          @if (req.role === 'member') {
+                            <button
+                              matButton="filled"
+                              [disabled]="actioningMembershipId() === req.id"
+                              (click)="promoteMember(req.id)"
+                            >
+                              @if (actioningMembershipId() === req.id) {
+                                <mat-spinner diameter="16" />
+                              } @else {
+                                Promote to admin
+                              }
+                            </button>
                           } @else {
-                            Approve
+                            <button
+                              matButton
+                              [disabled]="actioningMembershipId() === req.id"
+                              (click)="demoteAdmin(req.id)"
+                            >
+                              @if (actioningMembershipId() === req.id) {
+                                <mat-spinner diameter="16" />
+                              } @else {
+                                Demote to member
+                              }
+                            </button>
                           }
-                        </button>
-                        <button
-                          matButton
-                          [disabled]="actioningMembershipId() === req.id"
-                          (click)="denyMembership(req.id)"
-                        >
-                          Deny
-                        </button>
+                        } @else {
+                          <button
+                            matButton="filled"
+                            [disabled]="actioningMembershipId() === req.id"
+                            (click)="approveMembership(req.id)"
+                          >
+                            @if (actioningMembershipId() === req.id) {
+                              <mat-spinner diameter="16" />
+                            } @else {
+                              Approve
+                            }
+                          </button>
+                          <button
+                            matButton
+                            [disabled]="actioningMembershipId() === req.id"
+                            (click)="denyMembership(req.id)"
+                          >
+                            Deny
+                          </button>
+                        }
                       </div>
                     </mat-list-item>
                   }
