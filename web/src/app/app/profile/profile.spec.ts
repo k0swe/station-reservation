@@ -39,15 +39,20 @@ describe('ProfilePage', () => {
     }).compileComponents();
   });
 
-  it('loads and displays profile data', async () => {
+  it('loads profile data and memberships', async () => {
     const fixture = TestBed.createComponent(ProfilePage);
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
+    const page = fixture.componentInstance as unknown as {
+      ngOnInit: () => Promise<void>;
+      memberships: () => Array<{ club: { name: string } | null }> | null;
+      form: { getRawValue: () => { email: string; displayName: string } };
+      isLoading: () => boolean;
+    };
 
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('Edit account');
-    expect(compiled.textContent).toContain('Club memberships');
-    expect(compiled.textContent).toContain('Test Club');
+    await page.ngOnInit();
+
+    expect(page.memberships()?.[0]?.club?.name).toBe('Test Club');
+    expect(page.form.getRawValue().email).toBe('user@example.com');
+    expect(page.form.getRawValue().displayName).toBe('Example User');
+    expect(page.isLoading()).toBe(false);
   });
 });
