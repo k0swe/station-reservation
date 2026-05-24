@@ -18,7 +18,16 @@
             @for (resource of resources(); track resource.id) {
               <td class="slot-cell" [class.unaligned]="!isSlotAligned(resource, slot)">
                 @if (getReservationForCell(resource, slot); as reservation) {
-                  <span class="reservation-chip">{{ getOwnerLabel(reservation) }}</span>
+                  @if (isCancellable(reservation)) {
+                    <button
+                      class="reservation-chip reservation-chip--cancellable"
+                      [disabled]="isSubmitting()"
+                      (click)="onReservationClick(reservation)"
+                      [title]="'Click to cancel reservation for ' + getOwnerLabel(reservation)"
+                    >{{ getOwnerLabel(reservation) }}</button>
+                  } @else {
+                    <span class="reservation-chip">{{ getOwnerLabel(reservation) }}</span>
+                  }
                 } @else if (isSlotAligned(resource, slot) && isSlotFuture(slot) && isApprovedForResource(resource)) {
                   <button matButton (click)="onSlotClick(resource, slot)" [disabled]="isSubmitting()" class="open-slot-btn">
                     open

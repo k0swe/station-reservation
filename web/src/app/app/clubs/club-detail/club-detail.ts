@@ -57,6 +57,8 @@ export class ClubDetailPage implements OnInit {
   protected readonly reservationsError = signal<string | null>(null);
   protected readonly isCreatingReservation = signal(false);
   protected readonly reservationError = signal<string | null>(null);
+  protected readonly isCancellingReservation = signal(false);
+  protected readonly cancelReservationError = signal<string | null>(null);
 
   /** The current user's membership in this club (null if not a member). */
   protected readonly userMembership = signal<Membership | null>(null);
@@ -182,6 +184,20 @@ export class ClubDetailPage implements OnInit {
 
     if (error) {
       this.reservationError.set(error);
+      return;
+    }
+
+    await this.loadReservations();
+  }
+
+  protected async onReservationCancel(event: { reservationId: string }): Promise<void> {
+    this.cancelReservationError.set(null);
+    this.isCancellingReservation.set(true);
+    const { error } = await this.clubService.cancelReservation(event.reservationId);
+    this.isCancellingReservation.set(false);
+
+    if (error) {
+      this.cancelReservationError.set(error);
       return;
     }
 
