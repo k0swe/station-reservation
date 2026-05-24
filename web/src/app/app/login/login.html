@@ -45,9 +45,13 @@
           <button matButton="filled" type="submit" [disabled]="signInForm.invalid || isSubmitting()">
             Sign in
           </button>
+
+          <a routerLink="/forgot-password" class="forgot-password-link">Forgot password?</a>
         </form>
       </mat-card-content>
     </mat-card>
+
+    <p class="app-page__status">Don't have an account? <a routerLink="/register">Create one</a></p>
   }
 
   @if (authMessage(); as authMessage) {

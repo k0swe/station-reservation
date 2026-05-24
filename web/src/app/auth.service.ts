@@ -12,6 +12,7 @@ export class AuthService {
   readonly isConfigured = computed(() => this.supabaseUrl.length > 0 && this.supabasePublishableKey.length > 0);
   readonly session = signal<Session | null>(null);
   readonly initialized = signal(false);
+  readonly isPasswordRecovery = signal(false);
   readonly user = computed(() => this.session()?.user ?? null);
   readonly isAuthenticated = computed(() => this.user() !== null);
 
@@ -36,8 +37,11 @@ export class AuthService {
         this.markInitialized();
       });
 
-    this.authClient.onAuthStateChange((_, session) => {
+    this.authClient.onAuthStateChange((event, session) => {
       this.session.set(session);
+      if (event === 'PASSWORD_RECOVERY') {
+        this.isPasswordRecovery.set(true);
+      }
     });
   }
 
@@ -54,12 +58,39 @@ export class AuthService {
     return error?.message ?? null;
   }
 
+  async signUp(email: string, password: string): Promise<string | null> {
+    if (!this.authClient) {
+      return 'Supabase is not configured.';
+    }
+
+    const { error } = await this.authClient.signUp({ email, password });
+    return error?.message ?? null;
+  }
+
   async signOut(): Promise<string | null> {
     if (!this.authClient) {
       return 'Supabase is not configured.';
     }
 
     const { error } = await this.authClient.signOut();
+    return error?.message ?? null;
+  }
+
+  async resetPasswordForEmail(email: string, redirectTo: string): Promise<string | null> {
+    if (!this.authClient) {
+      return 'Supabase is not configured.';
+    }
+
+    const { error } = await this.authClient.resetPasswordForEmail(email, { redirectTo });
+    return error?.message ?? null;
+  }
+
+  async updatePassword(newPassword: string): Promise<string | null> {
+    if (!this.authClient) {
+      return 'Supabase is not configured.';
+    }
+
+    const { error } = await this.authClient.updateUser({ password: newPassword });
     return error?.message ?? null;
   }
 
