@@ -82,6 +82,8 @@
                     <span class="approval-badge approved">Approved</span>
                   } @else if (getApprovalStatus(resource.id) === 'pending') {
                     <span class="approval-badge pending">Pending approval</span>
+                  } @else if (getApprovalStatus(resource.id) === 'denied') {
+                    <span class="approval-badge denied">Denied</span>
                   } @else if (userMembership()?.status === 'approved') {
                     <button
                       matButton
