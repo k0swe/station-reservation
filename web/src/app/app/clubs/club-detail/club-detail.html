@@ -202,6 +202,55 @@
               }
             </mat-card-content>
         </mat-card>
+
+        <mat-card class="admin-card">
+            <mat-card-header>
+              <mat-card-title>Membership Requests</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              @if (membershipRequestsError(); as err) {
+                <p role="alert" class="error-message">{{ err }}</p>
+              } @else if (!membershipRequests()?.length) {
+                <p class="app-page__status">No membership requests.</p>
+              } @else {
+                @if (membershipActionError(); as err) {
+                  <p role="alert" class="error-message">{{ err }}</p>
+                }
+                <mat-list>
+                  @for (req of membershipRequests(); track req.id) {
+                    <mat-list-item lines="2">
+                      <div matListItemTitle>
+                        {{ req.user_display_name ?? req.user_callsign ?? req.user_id }}
+                      </div>
+                      <div matListItemLine class="request-status-badge {{ req.status }}">
+                        {{ req.status | titlecase }}
+                      </div>
+                      <div matListItemMeta class="request-actions">
+                        <button
+                          matButton="filled"
+                          [disabled]="actioningMembershipId() === req.id"
+                          (click)="approveMembership(req.id)"
+                        >
+                          @if (actioningMembershipId() === req.id) {
+                            <mat-spinner diameter="16" />
+                          } @else {
+                            Approve
+                          }
+                        </button>
+                        <button
+                          matButton
+                          [disabled]="actioningMembershipId() === req.id"
+                          (click)="denyMembership(req.id)"
+                        >
+                          Deny
+                        </button>
+                      </div>
+                    </mat-list-item>
+                  }
+                </mat-list>
+              }
+            </mat-card-content>
+        </mat-card>
       </section>
     }
 

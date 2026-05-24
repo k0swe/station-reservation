@@ -46,6 +46,18 @@ export interface ResourceAccessRequest {
   updated_at: string;
 }
 
+export interface MembershipRequest {
+  id: string;
+  club_id: string;
+  user_id: string;
+  role: 'admin' | 'member';
+  status: 'pending' | 'approved' | 'denied';
+  user_display_name: string | null;
+  user_callsign: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface CreateResourceInput {
   clubId: string;
   name: string;
@@ -280,5 +292,35 @@ export class ClubService {
     });
 
     return { data: data as ResourceAccessApproval | null, error: error?.message ?? null };
+  }
+
+  async listClubMembershipRequests(
+    clubId: string,
+  ): Promise<{ data: MembershipRequest[] | null; error: string | null }> {
+    if (!this.supabase) {
+      return { data: null, error: 'Supabase is not configured.' };
+    }
+
+    const { data, error } = await this.supabase.rpc('list_club_membership_requests', {
+      p_club_id: clubId,
+    });
+
+    return { data: data as MembershipRequest[] | null, error: error?.message ?? null };
+  }
+
+  async setMembershipStatus(
+    membershipId: string,
+    status: 'approved' | 'denied',
+  ): Promise<{ data: Membership | null; error: string | null }> {
+    if (!this.supabase) {
+      return { data: null, error: 'Supabase is not configured.' };
+    }
+
+    const { data, error } = await this.supabase.rpc('approve_deny_membership', {
+      p_membership_id: membershipId,
+      p_new_status: status,
+    });
+
+    return { data: data as Membership | null, error: error?.message ?? null };
   }
 }
