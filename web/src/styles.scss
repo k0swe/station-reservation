@@ -63,3 +63,10 @@ body {
   color: var(--mat-sys-on-surface-variant);
 }
 /* You can add global styles to this file, and also import other style files */
+
+// Allow flex layout inside mat-sidenav so sidenav-inner can fill full height
+mat-sidenav.sidenav > .mat-drawer-inner-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}

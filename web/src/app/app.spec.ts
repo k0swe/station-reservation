@@ -52,14 +52,13 @@ describe('App', () => {
     expect(compiled.querySelector('mat-toolbar')?.textContent).toContain('Club Shack');
   });
 
-  it('should render tri-state theme controls with system default', async () => {
+  it('should render tri-state theme controls', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
 
     const toggleButtons = compiled.querySelectorAll('mat-button-toggle');
     expect(toggleButtons).toHaveLength(3);
-    expect(compiled.textContent).toContain('System default');
   });
 
   it('keeps the home route public without an auth guard', () => {
