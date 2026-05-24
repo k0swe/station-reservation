@@ -66,6 +66,11 @@
     background-color: var(--mat-sys-surface-variant);
     color: var(--mat-sys-on-surface-variant);
   }
+
+  &.denied {
+    background-color: var(--mat-sys-error-container);
+    color: var(--mat-sys-on-error-container);
+  }
 }
 
 .request-status-badge {
