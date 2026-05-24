@@ -184,6 +184,25 @@ export class ClubService {
     return { data: data as { id: string } | null, error: error?.message ?? null };
   }
 
+  async requestMembership(clubId: string): Promise<{ data: Membership | null; error: string | null }> {
+    if (!this.supabase) {
+      return { data: null, error: 'Supabase is not configured.' };
+    }
+
+    const userId = this.auth.user()?.id;
+    if (!userId) {
+      return { data: null, error: 'Not authenticated.' };
+    }
+
+    const { data, error } = await this.supabase
+      .from('memberships')
+      .insert({ club_id: clubId, user_id: userId, role: 'member', status: 'pending' })
+      .select('*')
+      .single();
+
+    return { data: data as Membership | null, error: error?.message ?? null };
+  }
+
   async getUserMembership(clubId: string): Promise<{ data: Membership | null; error: string | null }> {
     if (!this.supabase) {
       return { data: null, error: 'Supabase is not configured.' };

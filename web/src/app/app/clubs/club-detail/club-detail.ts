@@ -55,6 +55,12 @@ export class ClubDetailPage implements OnInit {
 
   /** The current user's membership in this club (null if not a member). */
   protected readonly userMembership = signal<Membership | null>(null);
+  /** True when the user has an approved membership (enables schedule/resources view). */
+  protected readonly isApprovedMember = computed(() => this.userMembership()?.status === 'approved');
+  /** True while a membership request is being submitted. */
+  protected readonly isRequestingMembership = signal(false);
+  /** Error message from a failed membership request. */
+  protected readonly membershipRequestError = signal<string | null>(null);
   /** Map of resourceId → approval status for the current user. */
   protected readonly userApprovals = signal<Map<string, ResourceAccessApproval>>(new Map());
   /** Which resource ID is currently being applied for (null if none). */
@@ -153,6 +159,22 @@ export class ClubDetailPage implements OnInit {
     }
 
     await this.loadReservations();
+  }
+
+  protected async requestMembership(): Promise<void> {
+    this.membershipRequestError.set(null);
+    this.isRequestingMembership.set(true);
+    const { data, error } = await this.clubService.requestMembership(this.clubId);
+    this.isRequestingMembership.set(false);
+
+    if (error) {
+      this.membershipRequestError.set(error);
+      return;
+    }
+
+    if (data) {
+      this.userMembership.set(data);
+    }
   }
 
   protected async submitResource(): Promise<void> {

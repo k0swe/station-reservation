@@ -9,8 +9,29 @@
     <p role="alert">{{ error }}</p>
   } @else if (club(); as club) {
     <h1 class="app-page__title">{{ club.name }}</h1>
-    <p class="club-id">ID: {{ club.id }}</p>
 
+    @if (!isApprovedMember()) {
+      <section class="membership-section">
+        @if (!userMembership()) {
+          <button matButton="filled" [disabled]="isRequestingMembership()" (click)="requestMembership()">
+            @if (isRequestingMembership()) {
+              <mat-spinner diameter="18" />
+            } @else {
+              Request membership
+            }
+          </button>
+          @if (membershipRequestError(); as err) {
+            <p class="error-message" role="alert">{{ err }}</p>
+          }
+        } @else if (userMembership()?.status === 'pending') {
+          <p class="membership-status pending">Membership request pending approval.</p>
+        } @else if (userMembership()?.status === 'denied') {
+          <p class="membership-status denied">Membership request was denied.</p>
+        }
+      </section>
+    }
+
+    @if (isApprovedMember()) {
     <section class="schedule-section">
       <h2>Schedule</h2>
 
@@ -182,6 +203,8 @@
             </mat-card-content>
         </mat-card>
       </section>
+    }
+
     }
   } @else {
     <p class="app-page__status">Club not found.</p>
