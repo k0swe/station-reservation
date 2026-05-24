@@ -9,7 +9,6 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () => import('./app/home/home').then((module) => module.HomePage),
-    canActivate: [authGuard],
   },
   {
     path: 'clubs',
