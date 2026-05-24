@@ -1,17 +1,19 @@
-<p>Welcome to Club Shack</p>
+<section class="app-page">
+  <h1 class="app-page__title">Welcome to Club Shack</h1>
 
-<mat-card class="auth-card">
-  <mat-card-header>
-    <mat-card-title>Signed in</mat-card-title>
-  </mat-card-header>
-  <mat-card-content>
-    <p>You are signed in as <strong>{{ auth.user()?.email }}</strong>.</p>
-  </mat-card-content>
-  <mat-card-actions>
-    <button matButton="filled" type="button" (click)="signOut()">Sign out</button>
-  </mat-card-actions>
-</mat-card>
+  <mat-card class="auth-card" appearance="outlined">
+    <mat-card-header>
+      <mat-card-title>Signed in</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <p>You are signed in as <strong>{{ auth.user()?.email }}</strong>.</p>
+    </mat-card-content>
+    <mat-card-actions>
+      <button matButton="filled" type="button" (click)="signOut()">Sign out</button>
+    </mat-card-actions>
+  </mat-card>
 
-@if (authMessage(); as authMessage) {
-  <p role="status">{{ authMessage }}</p>
-}
+  @if (authMessage(); as authMessage) {
+    <p role="status" class="app-page__status">{{ authMessage }}</p>
+  }
+</section>

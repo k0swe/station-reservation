@@ -8,16 +8,34 @@
   flex: 1;
 }
 
+.app-toolbar {
+  background-color: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
 .sidenav {
   width: 220px;
+  border-right: 1px solid var(--mat-sys-outline-variant);
+  background-color: var(--mat-sys-surface-container-low);
+}
+
+.active-nav-item {
+  background-color: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
 }
 
 .content {
-  padding: 1rem;
+  padding: 1.25rem;
+  background-color: var(--mat-sys-surface);
 }
 
 .toolbar-spacer {
   flex: 1;
+}
+
+.theme-toggle {
+  margin-right: 0.5rem;
 }
 
 .account-avatar {

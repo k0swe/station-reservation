@@ -19,11 +19,20 @@ html {
   );
 }
 
+:root {
+  --app-color-scheme: light dark;
+}
+
+:root[data-theme='light'] {
+  --app-color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --app-color-scheme: dark;
+}
+
 body {
-  // Default the application to a light color theme. This can be changed to
-  // `dark` to enable the dark color theme, or to `light dark` to defer to the
-  // user's system settings.
-  color-scheme: light;
+  color-scheme: var(--app-color-scheme);
 
   // Set a default background, font and text colors for the application using
   // Angular Material's system-level CSS variables. Learn more about these
@@ -35,5 +44,22 @@ body {
   // Reset the user agent margin.
   margin: 0;
   height: 100%;
+}
+
+.app-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 72rem;
+}
+
+.app-page__title {
+  margin: 0;
+  color: var(--mat-sys-on-surface);
+}
+
+.app-page__status {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
 }
 /* You can add global styles to this file, and also import other style files */
