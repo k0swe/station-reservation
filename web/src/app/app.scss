@@ -2,10 +2,12 @@
   display: flex;
   flex-direction: column;
   height: 100dvh;
+  overflow: hidden;
 }
 
 .sidenav-container {
   flex: 1;
+  min-height: 0;
 }
 
 .app-toolbar {
@@ -36,6 +38,7 @@
 }
 
 .content {
+  box-sizing: border-box;
   padding: 1.25rem;
   background-color: var(--mat-sys-surface);
 }
