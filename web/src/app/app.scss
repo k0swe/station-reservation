@@ -20,6 +20,16 @@
   background-color: var(--mat-sys-surface-container-low);
 }
 
+.sidenav-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.sidenav-nav-list {
+  flex: 1;
+}
+
 .active-nav-item {
   background-color: var(--mat-sys-secondary-container);
   color: var(--mat-sys-on-secondary-container);
@@ -35,7 +45,7 @@
 }
 
 .theme-toggle {
-  margin-right: 0.5rem;
+  margin: 0 auto 0.75rem;
 }
 
 .account-avatar {
