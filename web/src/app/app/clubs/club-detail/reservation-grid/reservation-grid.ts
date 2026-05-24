@@ -20,6 +20,8 @@ export class ReservationGridComponent {
   /** Local midnight of the day to display. */
   readonly selectedDate = input.required<Date>();
   readonly isSubmitting = input(false);
+  /** Set of resource IDs the current user has approved access to. */
+  readonly approvedResourceIds = input.required<Set<string>>();
   readonly slotClick = output<{ resourceId: string; startsAt: Date; endsAt: Date }>();
 
   /**
@@ -82,6 +84,10 @@ export class ReservationGridComponent {
 
   protected getOwnerLabel(reservation: ClubReservation): string {
     return reservation.callsign ?? reservation.display_name ?? 'Reserved';
+  }
+
+  protected isApprovedForResource(resource: Resource): boolean {
+    return this.approvedResourceIds().has(resource.id);
   }
 
   protected onSlotClick(resource: Resource, slot: TimeSlot): void {
