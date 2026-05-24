@@ -1,6 +1,17 @@
-.club-id {
-  color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-body-small);
+.membership-section {
+  margin-top: 1.5rem;
+}
+
+.membership-status {
+  font: var(--mat-sys-body-medium);
+
+  &.pending {
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  &.denied {
+    color: var(--mat-sys-error);
+  }
 }
 
 .schedule-section,
