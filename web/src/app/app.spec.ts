@@ -1,10 +1,14 @@
+import { BreakpointObserver, type BreakpointState } from '@angular/cdk/layout';
 import { computed, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
+import { BehaviorSubject } from 'rxjs';
 import { vi } from 'vitest';
 import { App } from './app';
 import { routes } from './app.routes';
 import { AuthService } from './auth.service';
+
+const mobileNavMediaQuery = '(max-width: 767px)';
 
 class MockAuthService {
   readonly session = signal<{ user: { email: string } } | null>(null);
@@ -18,8 +22,26 @@ class MockAuthService {
   signOut = async (): Promise<string | null> => null;
 }
 
+class MockBreakpointObserver {
+  private readonly state = new BehaviorSubject<BreakpointState>({
+    matches: false,
+    breakpoints: { [mobileNavMediaQuery]: false },
+  });
+
+  observe = vi.fn().mockImplementation(() => this.state.asObservable());
+  isMatched = vi.fn().mockImplementation(() => this.state.value.matches);
+
+  setMatches(matches: boolean): void {
+    this.state.next({
+      matches,
+      breakpoints: { [mobileNavMediaQuery]: matches },
+    });
+  }
+}
+
 describe('App', () => {
   let auth: MockAuthService;
+  let breakpointObserver: MockBreakpointObserver;
   const themeStorageKey = 'club-shack-theme-preference';
 
   beforeEach(async () => {
@@ -28,10 +50,15 @@ describe('App', () => {
 
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [provideRouter(routes), { provide: AuthService, useClass: MockAuthService }],
+      providers: [
+        provideRouter(routes),
+        { provide: AuthService, useClass: MockAuthService },
+        { provide: BreakpointObserver, useClass: MockBreakpointObserver },
+      ],
     }).compileComponents();
 
     auth = TestBed.inject(AuthService) as unknown as MockAuthService;
+    breakpointObserver = TestBed.inject(BreakpointObserver) as unknown as MockBreakpointObserver;
   });
 
   afterEach(() => {
@@ -114,5 +141,32 @@ describe('App', () => {
     app.setThemePreference('system');
     fixture.detectChanges();
     expect(document.documentElement.getAttribute('data-theme')).toBeNull();
+  });
+
+  it('should collapse the sidenav on narrow screens', async () => {
+    breakpointObserver.setMatches(true);
+
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance as unknown as {
+      isNarrowScreen: () => boolean;
+      sidenavOpen: () => boolean;
+    };
+    await fixture.whenStable();
+
+    expect(app.isNarrowScreen()).toBe(true);
+    expect(app.sidenavOpen()).toBe(false);
+  });
+
+  it('should reopen the sidenav when returning to desktop width', async () => {
+    breakpointObserver.setMatches(true);
+
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance as unknown as { sidenavOpen: () => boolean };
+    await fixture.whenStable();
+
+    breakpointObserver.setMatches(false);
+    fixture.detectChanges();
+
+    expect(app.sidenavOpen()).toBe(true);
   });
 });

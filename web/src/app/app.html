@@ -33,7 +33,7 @@
 </mat-toolbar>
 
 <mat-sidenav-container class="sidenav-container">
-  <mat-sidenav [opened]="sidenavOpen()" mode="side" class="sidenav">
+  <mat-sidenav [opened]="sidenavOpen()" [mode]="isNarrowScreen() ? 'over' : 'side'" class="sidenav">
     <div class="sidenav-inner">
     <mat-nav-list class="sidenav-nav-list">
       <a mat-list-item routerLink="/" routerLinkActive="active-nav-item" [routerLinkActiveOptions]="{ exact: true }">
