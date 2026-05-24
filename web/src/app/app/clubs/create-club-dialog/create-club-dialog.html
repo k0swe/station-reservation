@@ -9,6 +9,14 @@
         <mat-error>Club name is required.</mat-error>
       }
     </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Slug (optional)</mat-label>
+      <input matInput formControlName="slug" autocomplete="off" />
+      @if (form.controls.slug.hasError('pattern')) {
+        <mat-error>Use lowercase letters, numbers, and hyphens only.</mat-error>
+      }
+    </mat-form-field>
   </form>
 
   @if (errorMessage(); as msg) {
