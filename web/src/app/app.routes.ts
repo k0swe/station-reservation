@@ -7,6 +7,18 @@ export const routes: Routes = [
     loadComponent: () => import('./app/login/login').then((module) => module.LoginPage),
   },
   {
+    path: 'register',
+    loadComponent: () => import('./app/register/register').then((module) => module.RegisterPage),
+  },
+  {
+    path: 'forgot-password',
+    loadComponent: () => import('./app/forgot-password/forgot-password').then((module) => module.ForgotPasswordPage),
+  },
+  {
+    path: 'reset-password',
+    loadComponent: () => import('./app/reset-password/reset-password').then((module) => module.ResetPasswordPage),
+  },
+  {
     path: '',
     loadComponent: () => import('./app/home/home').then((module) => module.HomePage),
   },

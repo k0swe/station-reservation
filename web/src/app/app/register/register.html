@@ -1,0 +1,79 @@
+<section class="app-page">
+  <h1 class="app-page__title">Create account</h1>
+
+  @if (!auth.isConfigured()) {
+    <mat-card class="auth-card" appearance="outlined">
+      <mat-card-header>
+        <mat-card-title>Authentication setup required</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p>
+          Set <code>supabaseUrl</code> and <code>supabasePublishableKey</code> in
+          <code>src/environments/environment.ts</code> to enable registration.
+        </p>
+      </mat-card-content>
+    </mat-card>
+  } @else if (registrationComplete()) {
+    <mat-card class="auth-card" appearance="outlined">
+      <mat-card-header>
+        <mat-card-title>Check your email</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p>
+          We've sent a confirmation link to your email address. Please check your inbox and click the link to activate
+          your account.
+        </p>
+        <p><a routerLink="/login">Return to sign in</a></p>
+      </mat-card-content>
+    </mat-card>
+  } @else {
+    <mat-card class="auth-card" appearance="outlined">
+      <mat-card-header>
+        <mat-card-title>Create account</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <form class="auth-form" [formGroup]="registerForm" (ngSubmit)="register()">
+          <mat-form-field>
+            <mat-label>Email</mat-label>
+            <input matInput type="email" formControlName="email" autocomplete="email" />
+            @if (registerForm.controls.email.hasError('required')) {
+              <mat-error>Email is required.</mat-error>
+            } @else if (registerForm.controls.email.hasError('email')) {
+              <mat-error>Enter a valid email.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Password</mat-label>
+            <input matInput type="password" formControlName="password" autocomplete="new-password" />
+            @if (registerForm.controls.password.hasError('required')) {
+              <mat-error>Password is required.</mat-error>
+            } @else if (registerForm.controls.password.hasError('minlength')) {
+              <mat-error>Password must be at least 8 characters.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Confirm password</mat-label>
+            <input matInput type="password" formControlName="confirmPassword" autocomplete="new-password" />
+            @if (registerForm.controls.confirmPassword.hasError('required')) {
+              <mat-error>Please confirm your password.</mat-error>
+            } @else if (registerForm.hasError('passwordsMismatch') && registerForm.controls.confirmPassword.touched) {
+              <mat-error>Passwords do not match.</mat-error>
+            }
+          </mat-form-field>
+
+          <button matButton="filled" type="submit" [disabled]="isSubmitting()">
+            Create account
+          </button>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <p class="app-page__status">Already have an account? <a routerLink="/login">Sign in</a></p>
+  }
+
+  @if (authMessage(); as authMessage) {
+    <p role="alert" class="app-page__status">{{ authMessage }}</p>
+  }
+</section>
