@@ -26,6 +26,17 @@ export interface CreateResourceInput {
   isActive?: boolean;
 }
 
+export interface ClubReservation {
+  id: string;
+  resource_id: string;
+  membership_id: string;
+  starts_at: string;
+  ends_at: string;
+  status: string;
+  callsign: string | null;
+  display_name: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ClubService {
   private readonly auth = inject(AuthService);
@@ -107,5 +118,41 @@ export class ClubService {
       .single();
 
     return { data: data as Resource | null, error: error?.message ?? null };
+  }
+
+  async listClubReservations(
+    clubId: string,
+    from: Date,
+    to: Date,
+  ): Promise<{ data: ClubReservation[] | null; error: string | null }> {
+    if (!this.supabase) {
+      return { data: null, error: 'Supabase is not configured.' };
+    }
+
+    const { data, error } = await this.supabase.rpc('list_club_reservations', {
+      p_club_id: clubId,
+      p_from: from.toISOString(),
+      p_to: to.toISOString(),
+    });
+
+    return { data: data as ClubReservation[] | null, error: error?.message ?? null };
+  }
+
+  async createReservation(
+    resourceId: string,
+    startsAt: Date,
+    endsAt: Date,
+  ): Promise<{ data: { id: string } | null; error: string | null }> {
+    if (!this.supabase) {
+      return { data: null, error: 'Supabase is not configured.' };
+    }
+
+    const { data, error } = await this.supabase.rpc('create_reservation', {
+      p_resource_id: resourceId,
+      p_starts_at: startsAt.toISOString(),
+      p_ends_at: endsAt.toISOString(),
+    });
+
+    return { data: data as { id: string } | null, error: error?.message ?? null };
   }
 }

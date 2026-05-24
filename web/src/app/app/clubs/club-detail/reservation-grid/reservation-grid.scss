@@ -1,0 +1,70 @@
+.no-resources {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.grid-scroll {
+  overflow-x: auto;
+}
+
+.reservation-grid {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 400px;
+
+  th,
+  td {
+    padding: 0.25rem 0.5rem;
+    text-align: center;
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+  }
+
+  .time-col {
+    text-align: left;
+    white-space: nowrap;
+    font: var(--mat-sys-label-medium);
+    color: var(--mat-sys-on-surface-variant);
+    min-width: 3.5rem;
+  }
+
+  .resource-col {
+    font: var(--mat-sys-label-medium);
+    min-width: 120px;
+  }
+
+  .time-cell {
+    text-align: left;
+    white-space: nowrap;
+    font: var(--mat-sys-body-small);
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  .slot-cell {
+    padding: 0.2rem 0.4rem;
+  }
+
+  .past-row {
+    opacity: 0.45;
+
+    .time-cell {
+      color: var(--mat-sys-on-surface-variant);
+    }
+  }
+
+  .unaligned {
+    background-color: var(--mat-sys-surface-container);
+  }
+}
+
+.reservation-chip {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 1rem;
+  background-color: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+  font: var(--mat-sys-label-medium);
+  white-space: nowrap;
+}
+
+.open-slot-btn {
+  width: 100%;
+}
