@@ -74,9 +74,10 @@ export class ReservationGridComponent {
     return epochSeconds % (resource.block_size_minutes * 60) === 0;
   }
 
-  /** Returns true when the slot has not yet started. */
+  /** Returns true when the slot has not yet ended (includes the currently-active block). */
   protected isSlotFuture(slot: TimeSlot): boolean {
-    return slot.startsAt.getTime() > Date.now();
+    const slotEnd = slot.startsAt.getTime() + this.rowIntervalMinutes() * 60 * 1000;
+    return slotEnd > Date.now();
   }
 
   protected getOwnerLabel(reservation: ClubReservation): string {
