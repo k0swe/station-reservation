@@ -33,6 +33,7 @@
         [reservations]="reservations() ?? []"
         [selectedDate]="selectedDate()"
         [isSubmitting]="isCreatingReservation()"
+        [approvedResourceIds]="approvedResourceIds()"
         (slotClick)="onSlotClick($event)"
       />
     </section>
@@ -46,61 +47,140 @@
         <p class="app-page__status">No resources found for this club yet.</p>
       } @else {
         <mat-list>
-          @for (resource of resources(); track resource.id) {
-            <mat-list-item lines="3">
-              <div matListItemTitle>{{ resource.name }}</div>
-              <div matListItemLine>
-                Block size: {{ resource.block_size_minutes }} minutes
-              </div>
-              @if (resource.description) {
-                <div matListItemLine>{{ resource.description }}</div>
-              }
-            </mat-list-item>
-          }
+            @for (resource of resources(); track resource.id) {
+              <mat-list-item lines="3">
+                <div matListItemTitle>{{ resource.name }}</div>
+                <div matListItemLine>
+                  Block size: {{ resource.block_size_minutes }} minutes
+                </div>
+                @if (resource.description) {
+                  <div matListItemLine>{{ resource.description }}</div>
+                }
+                <div matListItemMeta class="resource-access-status">
+                  @if (getApprovalStatus(resource.id) === 'approved') {
+                    <span class="approval-badge approved">Approved</span>
+                  } @else if (getApprovalStatus(resource.id) === 'pending') {
+                    <span class="approval-badge pending">Pending approval</span>
+                  } @else if (userMembership()?.status === 'approved') {
+                    <button
+                      matButton
+                      [disabled]="applyingForResourceId() === resource.id"
+                      (click)="applyForAccess(resource.id)"
+                    >
+                      @if (applyingForResourceId() === resource.id) {
+                        <mat-spinner diameter="16" />
+                      } @else {
+                        Apply for access
+                      }
+                    </button>
+                    @if (applyError().get(resource.id); as err) {
+                      <span class="error-message" role="alert">{{ err }}</span>
+                    }
+                  }
+                </div>
+              </mat-list-item>
+            }
         </mat-list>
       }
     </section>
 
     @if (isClubAdmin()) {
-      <section class="create-resource-section">
-        <h2>Create resource / station</h2>
+      <section class="admin-section">
+        <h2>Admin</h2>
 
-        <form class="create-resource-form" [formGroup]="form" (ngSubmit)="submitResource()">
-          <mat-form-field>
-            <mat-label>Resource name</mat-label>
-            <input matInput formControlName="name" autocomplete="off" />
-            @if (form.controls.name.hasError('required')) {
-              <mat-error>Resource name is required.</mat-error>
-            }
-          </mat-form-field>
+        <mat-card class="admin-card">
+            <mat-card-header>
+              <mat-card-title>Create Resource / Station</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <form class="create-resource-form" [formGroup]="form" (ngSubmit)="submitResource()">
+                <mat-form-field>
+                  <mat-label>Resource name</mat-label>
+                  <input matInput formControlName="name" autocomplete="off" />
+                  @if (form.controls.name.hasError('required')) {
+                    <mat-error>Resource name is required.</mat-error>
+                  }
+                </mat-form-field>
 
-          <mat-form-field>
-            <mat-label>Description</mat-label>
-            <input matInput formControlName="description" autocomplete="off" />
-          </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Description</mat-label>
+                  <input matInput formControlName="description" autocomplete="off" />
+                </mat-form-field>
 
-          <mat-form-field>
-            <mat-label>Block size (minutes)</mat-label>
-            <input matInput type="number" min="1" formControlName="blockSizeMinutes" />
-            @if (form.controls.blockSizeMinutes.hasError('required')) {
-              <mat-error>Block size is required.</mat-error>
-            } @else if (form.controls.blockSizeMinutes.hasError('min')) {
-              <mat-error>Block size must be greater than 0.</mat-error>
-            }
-          </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Block size (minutes)</mat-label>
+                  <input matInput type="number" min="1" formControlName="blockSizeMinutes" />
+                  @if (form.controls.blockSizeMinutes.hasError('required')) {
+                    <mat-error>Block size is required.</mat-error>
+                  } @else if (form.controls.blockSizeMinutes.hasError('min')) {
+                    <mat-error>Block size must be greater than 0.</mat-error>
+                  }
+                </mat-form-field>
 
-          <button matButton="filled" type="submit" [disabled]="isSubmittingResource()">
-            @if (isSubmittingResource()) {
-              <mat-spinner diameter="18" />
-            } @else {
-              Create resource
-            }
-          </button>
-        </form>
+                <button matButton="filled" type="submit" [disabled]="isSubmittingResource()">
+                  @if (isSubmittingResource()) {
+                    <mat-spinner diameter="18" />
+                  } @else {
+                    Create resource
+                  }
+                </button>
+              </form>
 
-        @if (createResourceError(); as createResourceError) {
-          <p class="error-message" role="alert">{{ createResourceError }}</p>
-        }
+              @if (createResourceError(); as createResourceError) {
+                <p class="error-message" role="alert">{{ createResourceError }}</p>
+              }
+            </mat-card-content>
+        </mat-card>
+
+        <mat-card class="admin-card">
+            <mat-card-header>
+              <mat-card-title>Resource Access Requests</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              @if (accessRequestsError(); as err) {
+                <p role="alert" class="error-message">{{ err }}</p>
+              } @else if (!accessRequests()?.length) {
+                <p class="app-page__status">No resource access requests.</p>
+              } @else {
+                @if (approvalActionError(); as err) {
+                  <p role="alert" class="error-message">{{ err }}</p>
+                }
+                <mat-list>
+                  @for (req of accessRequests(); track req.id) {
+                    <mat-list-item lines="2">
+                      <div matListItemTitle>
+                        {{ req.user_display_name ?? req.user_callsign ?? req.membership_id }}
+                        &rarr; {{ req.resource_name }}
+                      </div>
+                      <div matListItemLine class="request-status-badge {{ req.status }}">
+                        {{ req.status | titlecase }}
+                      </div>
+                      <div matListItemMeta class="request-actions">
+                        <button
+                          matButton="filled"
+                          [disabled]="actioningApprovalId() === req.id"
+                          (click)="approveRequest(req.id)"
+                        >
+                          @if (actioningApprovalId() === req.id) {
+                            <mat-spinner diameter="16" />
+                          } @else {
+                            Approve
+                          }
+                        </button>
+                        <button
+                          matButton
+                          [disabled]="actioningApprovalId() === req.id"
+                          (click)="denyRequest(req.id)"
+                        >
+                          Deny
+                        </button>
+                      </div>
+                    </mat-list-item>
+                  }
+                </mat-list>
+              }
+            </mat-card-content>
+        </mat-card>
       </section>
     }
   } @else {

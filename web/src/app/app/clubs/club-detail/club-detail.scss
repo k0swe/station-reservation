@@ -5,7 +5,7 @@
 
 .schedule-section,
 .resources-section,
-.create-resource-section {
+.admin-section {
   margin-top: 1.5rem;
 }
 
@@ -29,4 +29,52 @@
 
 .error-message {
   color: var(--mat-sys-error);
+}
+
+.admin-card {
+  margin-top: 1rem;
+}
+
+.resource-access-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.approval-badge {
+  font: var(--mat-sys-label-small);
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+
+  &.approved {
+    background-color: var(--mat-sys-secondary-container);
+    color: var(--mat-sys-on-secondary-container);
+  }
+
+  &.pending {
+    background-color: var(--mat-sys-surface-variant);
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.request-status-badge {
+  font: var(--mat-sys-label-small);
+
+  &.pending {
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  &.approved {
+    color: var(--mat-sys-secondary);
+  }
+
+  &.denied {
+    color: var(--mat-sys-error);
+  }
+}
+
+.request-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
 }
