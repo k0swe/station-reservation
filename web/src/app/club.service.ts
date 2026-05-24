@@ -347,6 +347,22 @@ export class ClubService {
     return { data: data as Membership | null, error: error?.message ?? null };
   }
 
+  async setMemberRole(
+    membershipId: string,
+    role: 'admin' | 'member',
+  ): Promise<{ data: Membership | null; error: string | null }> {
+    if (!this.supabase) {
+      return { data: null, error: 'Supabase is not configured.' };
+    }
+
+    const { data, error } = await this.supabase.rpc('set_member_role', {
+      p_membership_id: membershipId,
+      p_new_role: role,
+    });
+
+    return { data: data as Membership | null, error: error?.message ?? null };
+  }
+
   async cancelReservation(
     reservationId: string,
     notes?: string,
