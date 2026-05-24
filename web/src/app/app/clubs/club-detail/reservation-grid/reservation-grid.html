@@ -1,0 +1,34 @@
+@if (!resources().length) {
+  <p class="no-resources">No active resources to display.</p>
+} @else {
+  <div class="grid-scroll">
+    <table class="reservation-grid">
+      <thead>
+        <tr>
+          <th class="time-col">{{ timezoneAbbr() }}</th>
+          @for (resource of resources(); track resource.id) {
+            <th class="resource-col">{{ resource.name }}</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (slot of timeSlots(); track slot.label) {
+          <tr [class.past-row]="!isSlotFuture(slot)">
+            <td class="time-cell">{{ slot.label }}</td>
+            @for (resource of resources(); track resource.id) {
+              <td class="slot-cell" [class.unaligned]="!isSlotAligned(resource, slot)">
+                @if (getReservationForCell(resource, slot); as reservation) {
+                  <span class="reservation-chip">{{ getOwnerLabel(reservation) }}</span>
+                } @else if (isSlotAligned(resource, slot) && isSlotFuture(slot)) {
+                  <button matButton (click)="onSlotClick(resource, slot)" [disabled]="isSubmitting()" class="open-slot-btn">
+                    open
+                  </button>
+                }
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

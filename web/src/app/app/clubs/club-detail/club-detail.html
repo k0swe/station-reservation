@@ -11,6 +11,32 @@
     <h1 class="app-page__title">{{ club.name }}</h1>
     <p class="club-id">ID: {{ club.id }}</p>
 
+    <section class="schedule-section">
+      <h2>Schedule</h2>
+
+      <div class="date-nav">
+        <button matButton (click)="prevDay()" aria-label="Previous day">&larr;</button>
+        <span class="date-label">{{ selectedDateLabel() }}</span>
+        <button matButton (click)="nextDay()" aria-label="Next day">&rarr;</button>
+      </div>
+
+      @if (reservationsError(); as reservationsError) {
+        <p role="alert" class="error-message">{{ reservationsError }}</p>
+      }
+
+      @if (reservationError(); as reservationError) {
+        <p role="alert" class="error-message">{{ reservationError }}</p>
+      }
+
+      <app-reservation-grid
+        [resources]="activeResources()"
+        [reservations]="reservations() ?? []"
+        [selectedDate]="selectedDate()"
+        [isSubmitting]="isCreatingReservation()"
+        (slotClick)="onSlotClick($event)"
+      />
+    </section>
+
     <section class="resources-section">
       <h2>Resources / Stations</h2>
 

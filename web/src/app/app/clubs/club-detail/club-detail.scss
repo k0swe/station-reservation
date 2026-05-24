@@ -3,9 +3,21 @@
   font: var(--mat-sys-body-small);
 }
 
+.schedule-section,
 .resources-section,
 .create-resource-section {
   margin-top: 1.5rem;
+}
+
+.date-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.date-label {
+  font: var(--mat-sys-title-small);
 }
 
 .create-resource-form {
