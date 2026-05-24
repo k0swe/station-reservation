@@ -94,10 +94,10 @@ export class ClubDetailPage implements OnInit {
       month: 'long',
       day: 'numeric',
     });
-    protected readonly isSelectedDateToday = computed(
-      () => this.selectedDate().getTime() === this.localMidnightToday().getTime(),
-    );
   });
+  protected readonly isSelectedDateToday = computed(
+    () => this.selectedDate().getTime() === this.localMidnightToday().getTime(),
+  );
 
   /** Active resources only, for display in the reservation grid. */
   protected readonly activeResources = computed(() => (this.resources() ?? []).filter((r) => r.is_active));
