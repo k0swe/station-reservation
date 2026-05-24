@@ -35,19 +35,18 @@ export class ClubDetailPage implements OnInit {
   protected readonly isLoading = signal(true);
   protected readonly errorMessage = signal<string | null>(null);
 
-  protected readonly selectedDate = signal<Date>(this.utcMidnightToday());
+  protected readonly selectedDate = signal<Date>(this.localMidnightToday());
   protected readonly reservations = signal<ClubReservation[] | null>(null);
   protected readonly reservationsError = signal<string | null>(null);
   protected readonly isCreatingReservation = signal(false);
   protected readonly reservationError = signal<string | null>(null);
 
   protected readonly selectedDateLabel = computed(() => {
-    return this.selectedDate().toLocaleDateString('en-US', {
+    return this.selectedDate().toLocaleDateString(undefined, {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-      timeZone: 'UTC',
     });
   });
 
@@ -86,13 +85,13 @@ export class ClubDetailPage implements OnInit {
 
   protected prevDay(): void {
     const d = this.selectedDate();
-    this.selectedDate.set(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - 1)));
+    this.selectedDate.set(new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1));
     void this.loadReservations();
   }
 
   protected nextDay(): void {
     const d = this.selectedDate();
-    this.selectedDate.set(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1)));
+    this.selectedDate.set(new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1));
     void this.loadReservations();
   }
 
@@ -151,15 +150,15 @@ export class ClubDetailPage implements OnInit {
 
   private async loadReservations(): Promise<void> {
     const date = this.selectedDate();
-    const from = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-    const to = new Date(from.getTime() + 24 * 60 * 60 * 1000);
+    const from = new Date(date.getFullYear(), date.getMonth(), date.getDate()); // local midnight
+    const to = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1); // next local midnight
     const result = await this.clubService.listClubReservations(this.clubId, from, to);
     this.reservations.set(result.data);
     this.reservationsError.set(result.error);
   }
 
-  private utcMidnightToday(): Date {
+  private localMidnightToday(): Date {
     const now = new Date();
-    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
   }
 }

@@ -5,7 +5,7 @@
     <table class="reservation-grid">
       <thead>
         <tr>
-          <th class="time-col">UTC</th>
+          <th class="time-col">{{ timezoneAbbr() }}</th>
           @for (resource of resources(); track resource.id) {
             <th class="resource-col">{{ resource.name }}</th>
           }

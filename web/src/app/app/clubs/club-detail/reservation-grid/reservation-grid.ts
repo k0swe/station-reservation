@@ -17,7 +17,7 @@ interface TimeSlot {
 export class ReservationGridComponent {
   readonly resources = input.required<Resource[]>();
   readonly reservations = input.required<ClubReservation[]>();
-  /** UTC midnight of the day to display. */
+  /** Local midnight of the day to display. */
   readonly selectedDate = input.required<Date>();
   readonly isSubmitting = input(false);
   readonly slotClick = output<{ resourceId: string; startsAt: Date; endsAt: Date }>();
@@ -35,16 +35,24 @@ export class ReservationGridComponent {
   protected readonly timeSlots = computed((): TimeSlot[] => {
     const date = this.selectedDate();
     const intervalMs = this.rowIntervalMinutes() * 60 * 1000;
-    const dayStart = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+    // Use local midnight so the grid covers the user's calendar day.
+    const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
     const dayEnd = dayStart + 24 * 60 * 60 * 1000;
     const slots: TimeSlot[] = [];
     for (let t = dayStart; t < dayEnd; t += intervalMs) {
       const d = new Date(t);
-      const hh = d.getUTCHours().toString().padStart(2, '0');
-      const mm = d.getUTCMinutes().toString().padStart(2, '0');
+      const hh = d.getHours().toString().padStart(2, '0');
+      const mm = d.getMinutes().toString().padStart(2, '0');
       slots.push({ startsAt: d, label: `${hh}:${mm}` });
     }
     return slots;
+  });
+
+  /** Short timezone abbreviation to display in the time column header (e.g. "MDT", "EST"). */
+  protected readonly timezoneAbbr = computed((): string => {
+    const ref = this.timeSlots()[0]?.startsAt ?? new Date();
+    const parts = new Intl.DateTimeFormat(undefined, { timeZoneName: 'short' }).formatToParts(ref);
+    return parts.find((p) => p.type === 'timeZoneName')?.value ?? 'Local';
   });
 
   protected getReservationForCell(resource: Resource, slot: TimeSlot): ClubReservation | null {
