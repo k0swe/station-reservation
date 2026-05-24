@@ -37,8 +37,20 @@
 
       <div class="date-nav">
         <button matButton (click)="prevDay()" aria-label="Previous day">&larr;</button>
-        <span class="date-label">{{ selectedDateLabel() }}</span>
+        <button matButton class="date-label date-label-button" (click)="picker.open()" aria-label="Pick a date">
+          {{ selectedDateLabel() }}
+        </button>
+        <button matButton (click)="goToToday()" [disabled]="isSelectedDateToday()">Today</button>
         <button matButton (click)="nextDay()" aria-label="Next day">&rarr;</button>
+        <input
+          matInput
+          class="date-picker-input"
+          [matDatepicker]="picker"
+          [value]="selectedDate()"
+          (dateChange)="setSelectedDate($event.value)"
+          aria-label="Schedule date picker"
+        />
+        <mat-datepicker #picker />
       </div>
 
       @if (reservationsError(); as reservationsError) {
