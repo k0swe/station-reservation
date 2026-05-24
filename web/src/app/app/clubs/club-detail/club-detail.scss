@@ -25,10 +25,23 @@
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 1rem;
+  position: relative;
 }
 
 .date-label {
   font: var(--mat-sys-title-small);
+}
+
+.date-label-button {
+  text-transform: none;
+}
+
+.date-picker-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .create-resource-form {

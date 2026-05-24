@@ -3,6 +3,8 @@ import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } 
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
@@ -27,9 +29,11 @@ import { ReservationGridComponent } from './reservation-grid/reservation-grid';
     ReactiveFormsModule,
     MatButtonModule,
     MatCardModule,
+    MatDatepickerModule,
     MatFormFieldModule,
     MatInputModule,
     MatListModule,
+    MatNativeDateModule,
     MatProgressSpinnerModule,
     RouterLink,
     ReservationGridComponent,
@@ -91,6 +95,9 @@ export class ClubDetailPage implements OnInit {
       day: 'numeric',
     });
   });
+  protected readonly isSelectedDateToday = computed(
+    () => this.selectedDate().getTime() === this.localMidnightToday().getTime(),
+  );
 
   /** Active resources only, for display in the reservation grid. */
   protected readonly activeResources = computed(() => (this.resources() ?? []).filter((r) => r.is_active));
@@ -145,14 +152,26 @@ export class ClubDetailPage implements OnInit {
 
   protected prevDay(): void {
     const d = this.selectedDate();
-    this.selectedDate.set(new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1));
-    void this.loadReservations();
+    this.setAndLoadDate(new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1));
   }
 
   protected nextDay(): void {
     const d = this.selectedDate();
-    this.selectedDate.set(new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1));
-    void this.loadReservations();
+    this.setAndLoadDate(new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1));
+  }
+
+  protected setSelectedDate(date: Date | null): void {
+    if (!date) {
+      return;
+    }
+    this.setAndLoadDate(date);
+  }
+
+  protected goToToday(): void {
+    if (this.isSelectedDateToday()) {
+      return;
+    }
+    this.setAndLoadDate(this.localMidnightToday());
   }
 
   protected async onSlotClick(event: { resourceId: string; startsAt: Date; endsAt: Date }): Promise<void> {
@@ -340,5 +359,10 @@ export class ClubDetailPage implements OnInit {
   private localMidnightToday(): Date {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  }
+
+  private setAndLoadDate(date: Date): void {
+    this.selectedDate.set(new Date(date.getFullYear(), date.getMonth(), date.getDate()));
+    void this.loadReservations();
   }
 }
