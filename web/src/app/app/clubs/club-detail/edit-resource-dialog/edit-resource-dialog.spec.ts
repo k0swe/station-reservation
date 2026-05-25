@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { of } from 'rxjs';
 import { vi } from 'vitest';
 import { ClubService, Resource } from '../../../../club.service';
@@ -23,15 +23,10 @@ describe('EditResourceDialog', () => {
     updateResource: vi.fn(),
     deleteResource: vi.fn(),
   };
-  const dialog = {
-    open: vi.fn(),
-  };
-
   beforeEach(async () => {
     dialogRef.close.mockReset();
     clubService.updateResource.mockReset();
     clubService.deleteResource.mockReset();
-    dialog.open.mockReset();
 
     await TestBed.configureTestingModule({
       imports: [EditResourceDialog, NoopAnimationsModule],
@@ -39,7 +34,6 @@ describe('EditResourceDialog', () => {
         { provide: MAT_DIALOG_DATA, useValue: resource },
         { provide: MatDialogRef, useValue: dialogRef },
         { provide: ClubService, useValue: clubService },
-        { provide: MatDialog, useValue: dialog },
       ],
     }).compileComponents();
   });
@@ -80,15 +74,16 @@ describe('EditResourceDialog', () => {
   });
 
   it('deletes the station after confirmation', async () => {
-    dialog.open.mockReturnValue({
-      afterClosed: () => of(true),
-    });
     clubService.deleteResource.mockResolvedValue({ error: null });
 
     const fixture = TestBed.createComponent(EditResourceDialog);
-    const component = fixture.componentInstance as EditResourceDialog & {
-      deleteResource: () => Promise<void>;
+    const dialog = {
+      open: vi.fn().mockReturnValue({
+        afterClosed: () => of(true),
+      }),
     };
+    const component = fixture.componentInstance as any;
+    component.dialog = dialog;
 
     await component.deleteResource();
 
