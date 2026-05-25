@@ -59,6 +59,20 @@ export class AuthService {
     return error?.message ?? null;
   }
 
+  async signInWithGoogle(redirectPath = '/'): Promise<string | null> {
+    if (!this.authClient) {
+      return 'Supabase is not configured.';
+    }
+
+    const { error } = await this.authClient.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: this.buildRedirectUrl(redirectPath),
+      },
+    });
+    return error?.message ?? null;
+  }
+
   async signUp(email: string, password: string): Promise<string | null> {
     if (!this.authClient) {
       return 'Supabase is not configured.';

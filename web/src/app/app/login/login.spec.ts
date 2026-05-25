@@ -13,6 +13,7 @@ class MockAuthService {
 
   waitUntilInitialized = async (): Promise<void> => {};
   signInWithPassword = async (): Promise<string | null> => null;
+  signInWithGoogle = vi.fn().mockResolvedValue(null);
   signOut = async (): Promise<string | null> => null;
 }
 
@@ -57,5 +58,27 @@ describe('LoginPage', () => {
     await fixture.whenStable();
 
     expect(router.navigateByUrl).toHaveBeenCalledWith('/clubs', { replaceUrl: true });
+  });
+
+  it('starts Google sign-in with the latest redirectTo value', async () => {
+    const fixture = TestBed.createComponent(LoginPage);
+    const page = fixture.componentInstance as any;
+    fixture.detectChanges();
+    redirectTo = '/clubs/123';
+
+    await page.signInWithGoogle();
+
+    expect(auth.signInWithGoogle).toHaveBeenCalledWith('/clubs/123');
+  });
+
+  it('shows a Google sign-in error', async () => {
+    const fixture = TestBed.createComponent(LoginPage);
+    const page = fixture.componentInstance as any;
+    auth.signInWithGoogle.mockResolvedValue('OAuth provider unavailable');
+    fixture.detectChanges();
+
+    await page.signInWithGoogle();
+
+    expect(page.authMessage()).toBe('OAuth provider unavailable');
   });
 });
