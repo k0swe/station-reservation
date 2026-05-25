@@ -55,4 +55,15 @@ export class LoginPage {
 
     this.isSubmitting.set(false);
   }
+
+  protected async signInWithGoogle(): Promise<void> {
+    this.authMessage.set(null);
+    this.isSubmitting.set(true);
+
+    const errorMessage = await this.auth.signInWithGoogle(this.getRedirectTo());
+    if (errorMessage) {
+      this.authMessage.set(errorMessage);
+      this.isSubmitting.set(false);
+    }
+  }
 }
