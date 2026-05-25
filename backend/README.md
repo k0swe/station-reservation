@@ -137,7 +137,7 @@ Complex writes are handled by `SECURITY DEFINER` SQL functions called via the Po
 | `set_member_role(membership_id, new_role)`            | Promotes or demotes a member; prevents removing the last admin             |
 | `set_resource_access_status(approval_id, new_status)` | Approves, denies, or revokes resource access                               |
 | `create_reservation(resource_id, starts_at, ends_at)` | Creates a reservation after enforcing all business rules                   |
-| `cancel_reservation(reservation_id, notes?)`          | Cancels a reservation and writes an audit event                            |
+| `cancel_reservation(reservation_id, notes?)`          | Cancels a reservation before it ends and writes an audit event             |
 
 ### Reservation rules enforced by `create_reservation`
 

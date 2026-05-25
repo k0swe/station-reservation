@@ -97,10 +97,10 @@ export class ReservationGridComponent {
 
   /**
    * Returns true when the current user can cancel this reservation:
-   * they own it OR they are a club admin, and the reservation hasn't started yet.
+   * they own it OR they are a club admin, and the reservation has not ended yet.
    */
   protected isCancellable(reservation: ClubReservation): boolean {
-    if (new Date(reservation.starts_at) <= new Date()) return false;
+    if (new Date(reservation.ends_at) <= new Date()) return false;
     if (this.isAdmin()) return true;
     return reservation.membership_id === this.currentUserMembershipId();
   }
