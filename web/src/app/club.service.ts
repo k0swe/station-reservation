@@ -67,6 +67,14 @@ export interface CreateResourceInput {
   isActive?: boolean;
 }
 
+export interface UpdateResourceInput {
+  resourceId: string;
+  name: string;
+  description: string | null;
+  blockSizeMinutes: number;
+  isActive: boolean;
+}
+
 export interface ClubReservation {
   id: string;
   resource_id: string;
@@ -181,6 +189,35 @@ export class ClubService {
       .single();
 
     return { data: data as Resource | null, error: error?.message ?? null };
+  }
+
+  async updateResource(input: UpdateResourceInput): Promise<{ data: Resource | null; error: string | null }> {
+    if (!this.supabase) {
+      return { data: null, error: 'Supabase is not configured.' };
+    }
+
+    const { data, error } = await this.supabase
+      .from('resources')
+      .update({
+        name: input.name,
+        description: input.description,
+        block_size_minutes: input.blockSizeMinutes,
+        is_active: input.isActive,
+      })
+      .eq('id', input.resourceId)
+      .select()
+      .single();
+
+    return { data: data as Resource | null, error: error?.message ?? null };
+  }
+
+  async deleteResource(resourceId: string): Promise<{ error: string | null }> {
+    if (!this.supabase) {
+      return { error: 'Supabase is not configured.' };
+    }
+
+    const { error } = await this.supabase.from('resources').delete().eq('id', resourceId);
+    return { error: error?.message ?? null };
   }
 
   async listClubReservations(
