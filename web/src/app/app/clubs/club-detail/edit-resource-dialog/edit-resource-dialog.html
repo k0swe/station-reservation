@@ -1,0 +1,52 @@
+<h2 mat-dialog-title>Edit Station</h2>
+
+<mat-dialog-content>
+  <form class="edit-resource-form" [formGroup]="form" (ngSubmit)="submit()">
+    <mat-form-field>
+      <mat-label>Station name</mat-label>
+      <input matInput formControlName="name" autocomplete="off" />
+      @if (form.controls.name.hasError('required')) {
+        <mat-error>Station name is required.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Description</mat-label>
+      <input matInput formControlName="description" autocomplete="off" />
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Block size (minutes)</mat-label>
+      <input matInput type="number" min="1" formControlName="blockSizeMinutes" />
+      @if (form.controls.blockSizeMinutes.hasError('required')) {
+        <mat-error>Block size is required.</mat-error>
+      } @else if (form.controls.blockSizeMinutes.hasError('min')) {
+        <mat-error>Block size must be greater than 0.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-checkbox formControlName="isActive">Station is active</mat-checkbox>
+  </form>
+
+  @if (errorMessage(); as msg) {
+    <p class="error-message" role="alert">{{ msg }}</p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button matButton type="button" [disabled]="isBusy()" (click)="deleteResource()">
+    @if (isDeleting()) {
+      <mat-spinner diameter="18" />
+    } @else {
+      Delete
+    }
+  </button>
+  <button matButton type="button" [disabled]="isBusy()" (click)="cancel()">Cancel</button>
+  <button matButton="filled" type="button" [disabled]="isBusy()" (click)="submit()">
+    @if (isSubmitting()) {
+      <mat-spinner diameter="18" />
+    } @else {
+      Save
+    }
+  </button>
+</mat-dialog-actions>

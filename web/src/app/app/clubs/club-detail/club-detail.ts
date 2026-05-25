@@ -5,11 +5,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import {
   Club,
   ClubReservation,
@@ -20,6 +22,7 @@ import {
   ResourceAccessApproval,
   ResourceAccessRequest,
 } from '../../../club.service';
+import { EditResourceDialog, EditResourceDialogResult } from './edit-resource-dialog/edit-resource-dialog';
 import { ReservationGridComponent } from './reservation-grid/reservation-grid';
 
 @Component({
@@ -122,6 +125,7 @@ export class ClubDetailPage implements OnInit {
   });
 
   private readonly clubService = inject(ClubService);
+  private readonly dialog = inject(MatDialog);
   private readonly route = inject(ActivatedRoute);
   private clubId = '';
 
@@ -264,6 +268,36 @@ export class ClubDetailPage implements OnInit {
       });
       this.form.reset({ name: '', description: '', blockSizeMinutes: 60 });
     }
+  }
+
+  protected async openEditResourceDialog(resource: Resource): Promise<void> {
+    const result = await firstValueFrom(
+      this.dialog
+        .open(EditResourceDialog, {
+          data: resource,
+          width: '480px',
+        })
+        .afterClosed(),
+    );
+
+    if (!result) {
+      return;
+    }
+
+    if (result.kind === 'updated') {
+      this.updateResource(result);
+    } else {
+      this.removeResource(result);
+    }
+
+    const followUpLoads: Promise<void>[] = [];
+    if (this.isClubAdmin()) {
+      followUpLoads.push(this.loadAccessRequests());
+    }
+    if (result.kind === 'deleted') {
+      followUpLoads.push(this.loadUserApprovals());
+    }
+    await Promise.all(followUpLoads);
   }
 
   protected getApprovalStatus(resourceId: string): 'pending' | 'approved' | 'denied' | null {
@@ -410,5 +444,16 @@ export class ClubDetailPage implements OnInit {
   private setAndLoadDate(date: Date): void {
     this.selectedDate.set(new Date(date.getFullYear(), date.getMonth(), date.getDate()));
     void this.loadReservations();
+  }
+
+  private updateResource(result: Extract<EditResourceDialogResult, { kind: 'updated' }>): void {
+    this.resources.update((existing) => {
+      const next = existing?.map((resource) => (resource.id === result.resource.id ? result.resource : resource)) ?? [];
+      return next.sort((a, b) => a.name.localeCompare(b.name));
+    });
+  }
+
+  private removeResource(result: Extract<EditResourceDialogResult, { kind: 'deleted' }>): void {
+    this.resources.update((existing) => existing?.filter((resource) => resource.id !== result.resourceId) ?? []);
   }
 }
