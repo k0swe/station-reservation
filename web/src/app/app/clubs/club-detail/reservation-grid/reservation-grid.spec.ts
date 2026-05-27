@@ -75,6 +75,35 @@ describe('ReservationGridComponent', () => {
     expect(button).toBeNull();
     expect(label?.textContent?.trim()).toBe('K0ABC');
   });
+
+  it('stops showing cancellation after time advances past reservation end', () => {
+    const now = new Date('2026-05-25T12:00:00.000Z');
+    vi.useFakeTimers();
+    vi.setSystemTime(now);
+
+    const reservation = createReservation({
+      starts_at: '2026-05-25T12:00:00.000Z',
+      ends_at: '2026-05-25T12:00:05.000Z',
+      membership_id: 'membership-1',
+    });
+
+    const fixture = TestBed.createComponent(ReservationGridComponent);
+    fixture.componentRef.setInput('resources', [resource]);
+    fixture.componentRef.setInput('reservations', [reservation]);
+    fixture.componentRef.setInput('selectedDate', selectedDate);
+    fixture.componentRef.setInput('approvedResourceIds', new Set<string>([resource.id]));
+    fixture.componentRef.setInput('currentUserMembershipId', 'membership-1');
+    fixture.componentRef.setInput('isAdmin', false);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.reservation-chip--cancellable')).not.toBeNull();
+
+    vi.advanceTimersByTime(16_000);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.reservation-chip--cancellable')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.reservation-chip')?.textContent?.trim()).toBe('K0ABC');
+  });
 });
 
 function createReservation(overrides: Partial<ClubReservation>): ClubReservation {

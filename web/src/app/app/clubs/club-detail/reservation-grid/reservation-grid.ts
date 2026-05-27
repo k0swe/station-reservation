@@ -1,5 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, input, output, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
+import { interval } from 'rxjs';
 import { ClubReservation, Resource } from '../../../../club.service';
 
 interface TimeSlot {
@@ -28,6 +30,14 @@ export class ReservationGridComponent {
   readonly isAdmin = input(false);
   readonly slotClick = output<{ resourceId: string; startsAt: Date; endsAt: Date }>();
   readonly reservationCancel = output<{ reservationId: string }>();
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly nowMs = signal(Date.now());
+
+  constructor() {
+    interval(15_000)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.nowMs.set(Date.now()));
+  }
 
   /**
    * Row interval in minutes: the minimum block_size_minutes across all resources.
@@ -84,7 +94,7 @@ export class ReservationGridComponent {
   /** Returns true when the slot has not yet ended (includes the currently-active block). */
   protected isSlotFuture(slot: TimeSlot): boolean {
     const slotEnd = slot.startsAt.getTime() + this.rowIntervalMinutes() * 60 * 1000;
-    return slotEnd > Date.now();
+    return slotEnd > this.nowMs();
   }
 
   protected getOwnerLabel(reservation: ClubReservation): string {
@@ -100,7 +110,7 @@ export class ReservationGridComponent {
    * they own it OR they are a club admin, and the reservation has not ended yet.
    */
   protected isCancellable(reservation: ClubReservation): boolean {
-    if (new Date(reservation.ends_at) <= new Date()) return false;
+    if (new Date(reservation.ends_at).getTime() <= this.nowMs()) return false;
     if (this.isAdmin()) return true;
     return reservation.membership_id === this.currentUserMembershipId();
   }

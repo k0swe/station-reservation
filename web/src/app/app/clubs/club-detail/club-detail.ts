@@ -1,5 +1,6 @@
 import { TitleCasePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -11,7 +12,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, interval } from 'rxjs';
 import {
   Club,
   ClubReservation,
@@ -127,7 +128,9 @@ export class ClubDetailPage implements OnInit {
   private readonly clubService = inject(ClubService);
   private readonly dialog = inject(MatDialog);
   private readonly route = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
   private clubId = '';
+  private isRefreshingReservations = false;
 
   async ngOnInit(): Promise<void> {
     const clubIdentifier = this.route.snapshot.paramMap.get('id') ?? '';
@@ -161,6 +164,7 @@ export class ClubDetailPage implements OnInit {
       parallelLoads.push(this.loadAccessRequests(), this.loadMembershipRequests());
     }
     await Promise.all(parallelLoads);
+    this.startReservationsPolling();
   }
 
   protected prevDay(): void {
@@ -413,6 +417,25 @@ export class ClubDetailPage implements OnInit {
     const result = await this.clubService.listClubReservations(this.clubId, from, to);
     this.reservations.set(result.data);
     this.reservationsError.set(result.error);
+  }
+
+  private startReservationsPolling(): void {
+    interval(30_000)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => void this.refreshReservationsInBackground());
+  }
+
+  private async refreshReservationsInBackground(): Promise<void> {
+    if (this.isRefreshingReservations) {
+      return;
+    }
+
+    this.isRefreshingReservations = true;
+    try {
+      await this.loadReservations();
+    } finally {
+      this.isRefreshingReservations = false;
+    }
   }
 
   private async loadUserApprovals(): Promise<void> {
