@@ -34,9 +34,14 @@ export class ReservationGridComponent {
   private readonly nowMs = signal(Date.now());
 
   constructor() {
-    interval(15_000)
+    interval(30_000)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.nowMs.set(Date.now()));
+      .subscribe(() => {
+        if (!this.isSelectedDateToday()) {
+          return;
+        }
+        this.nowMs.set(Date.now());
+      });
   }
 
   /**
@@ -71,6 +76,16 @@ export class ReservationGridComponent {
     const parts = new Intl.DateTimeFormat(undefined, { timeZoneName: 'short' }).formatToParts(ref);
     return parts.find((p) => p.type === 'timeZoneName')?.value ?? 'Local';
   });
+
+  private isSelectedDateToday(): boolean {
+    const selectedDate = this.selectedDate();
+    const today = new Date();
+    return (
+      selectedDate.getFullYear() === today.getFullYear() &&
+      selectedDate.getMonth() === today.getMonth() &&
+      selectedDate.getDate() === today.getDate()
+    );
+  }
 
   protected getReservationForCell(resource: Resource, slot: TimeSlot): ClubReservation | null {
     const slotStart = slot.startsAt.getTime();

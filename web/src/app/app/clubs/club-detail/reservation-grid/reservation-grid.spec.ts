@@ -98,7 +98,7 @@ describe('ReservationGridComponent', () => {
 
     expect(fixture.nativeElement.querySelector('.reservation-chip--cancellable')).not.toBeNull();
 
-    vi.advanceTimersByTime(16_000);
+    vi.advanceTimersByTime(31_000);
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.reservation-chip--cancellable')).toBeNull();

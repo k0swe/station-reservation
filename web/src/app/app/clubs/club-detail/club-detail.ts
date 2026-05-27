@@ -426,6 +426,10 @@ export class ClubDetailPage implements OnInit {
   }
 
   private async refreshReservationsInBackground(): Promise<void> {
+    if (globalThis.document?.visibilityState === 'hidden') {
+      return;
+    }
+
     if (this.isRefreshingReservations) {
       return;
     }
