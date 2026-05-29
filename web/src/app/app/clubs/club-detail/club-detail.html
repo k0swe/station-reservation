@@ -88,13 +88,20 @@
       } @else {
         <mat-list>
             @for (resource of resources(); track resource.id) {
-              <mat-list-item lines="3">
+              <mat-list-item [lines]="isClubAdmin() ? 4 : 3">
                 <div matListItemTitle>{{ resource.name }}</div>
                 <div matListItemLine>
                   Block size: {{ resource.block_size_minutes }} minutes
                 </div>
                 @if (resource.description) {
                   <div matListItemLine>{{ resource.description }}</div>
+                }
+                @if (isClubAdmin()) {
+                  <div matListItemLine>
+                    <button matButton type="button" (click)="openEditResourceDialog(resource)">
+                      Edit station
+                    </button>
+                  </div>
                 }
                 <div matListItemMeta class="resource-meta">
                   <div class="resource-access-status">
@@ -121,11 +128,6 @@
                       }
                     }
                   </div>
-                  @if (isClubAdmin()) {
-                    <button matButton type="button" (click)="openEditResourceDialog(resource)">
-                      Edit station
-                    </button>
-                  }
                 </div>
               </mat-list-item>
             }
