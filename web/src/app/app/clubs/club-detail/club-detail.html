@@ -88,7 +88,7 @@
       } @else {
         <mat-list>
             @for (resource of resources(); track resource.id) {
-              <mat-list-item lines="3">
+              <mat-list-item [lines]="isClubAdmin() ? 4 : 3">
                 <div matListItemTitle>{{ resource.name }}</div>
                 <div matListItemLine>
                   Block size: {{ resource.block_size_minutes }} minutes
