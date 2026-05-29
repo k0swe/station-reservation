@@ -96,6 +96,13 @@
                 @if (resource.description) {
                   <div matListItemLine>{{ resource.description }}</div>
                 }
+                @if (isClubAdmin()) {
+                  <div matListItemLine>
+                    <button matButton type="button" (click)="openEditResourceDialog(resource)">
+                      Edit station
+                    </button>
+                  </div>
+                }
                 <div matListItemMeta class="resource-meta">
                   <div class="resource-access-status">
                     @if (getApprovalStatus(resource.id) === 'approved') {
@@ -121,11 +128,6 @@
                       }
                     }
                   </div>
-                  @if (isClubAdmin()) {
-                    <button matButton type="button" (click)="openEditResourceDialog(resource)">
-                      Edit station
-                    </button>
-                  }
                 </div>
               </mat-list-item>
             }
