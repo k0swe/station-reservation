@@ -109,23 +109,23 @@ used to live in Postgres RLS policies and `SECURITY DEFINER` functions.
 The client calls the function with the action as the request path and a JSON body, e.g.
 `POST /createReservation`. Every response is `{ "data": ..., "error": ... }`.
 
-| Action                                                   | Description                                                       |
-| -------------------------------------------------------- | ----------------------------------------------------------------- |
-| `listClubs`                                              | All clubs, ordered by name                                        |
-| `createClub`                                             | Creates a club and makes the caller an approved admin             |
-| `getClub`                                                | Looks a club up by slug, falling back to row ID                   |
-| `isClubAdmin`                                            | Whether the caller is an approved admin of a club                 |
-| `listClubResources`                                      | Club resources; members see active ones, admins see all           |
-| `createResource` / `updateResource` / `deleteResource`   | Club admin resource management                                    |
-| `requestMembership` / `getUserMembership`                | Self-service membership request and lookup                        |
-| `listClubMembershipRequests` / `setMembershipStatus`     | Admin membership review; denial cancels upcoming reservations     |
-| `setMemberRole`                                          | Promote/demote a member; refuses self-changes and the last admin  |
-| `getMyResourceApprovals` / `applyForResourceAccess`      | Member resource-access requests                                   |
-| `listClubResourceAccessRequests` / `setResourceAccessStatus` | Admin resource-access review                                  |
-| `listClubReservations`                                   | Active reservations for a club within a time window               |
-| `createReservation` / `cancelReservation`                | Reservation lifecycle, with audit events                          |
-| `getCurrentProfile` / `saveCurrentProfile`               | The caller's profile row                                          |
-| `listCurrentMemberships`                                 | The caller's memberships with club names                          |
+| Action                                                       | Description                                                      |
+| ------------------------------------------------------------ | ---------------------------------------------------------------- |
+| `listClubs`                                                  | All clubs, ordered by name                                       |
+| `createClub`                                                 | Creates a club and makes the caller an approved admin            |
+| `getClub`                                                    | Looks a club up by slug, falling back to row ID                  |
+| `isClubAdmin`                                                | Whether the caller is an approved admin of a club                |
+| `listClubResources`                                          | Club resources; members see active ones, admins see all          |
+| `createResource` / `updateResource` / `deleteResource`       | Club admin resource management                                   |
+| `requestMembership` / `getUserMembership`                    | Self-service membership request and lookup                       |
+| `listClubMembershipRequests` / `setMembershipStatus`         | Admin membership review; denial cancels upcoming reservations    |
+| `setMemberRole`                                              | Promote/demote a member; refuses self-changes and the last admin |
+| `getMyResourceApprovals` / `applyForResourceAccess`          | Member resource-access requests                                  |
+| `listClubResourceAccessRequests` / `setResourceAccessStatus` | Admin resource-access review                                     |
+| `listClubReservations`                                       | Active reservations for a club within a time window              |
+| `createReservation` / `cancelReservation`                    | Reservation lifecycle, with audit events                         |
+| `getCurrentProfile` / `saveCurrentProfile`                   | The caller's profile row                                         |
+| `listCurrentMemberships`                                     | The caller's memberships with club names                         |
 
 ### Reservation rules enforced by `createReservation`
 

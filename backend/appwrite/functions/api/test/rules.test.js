@@ -27,7 +27,10 @@ describe('normalizeSlug', () => {
 
 describe('parseTimestamp', () => {
   it('parses ISO-8601 strings', () => {
-    assert.equal(parseTimestamp('2026-05-22T00:00:00Z', 'from').toISOString(), '2026-05-22T00:00:00.000Z');
+    assert.equal(
+      parseTimestamp('2026-05-22T00:00:00Z', 'from').toISOString(),
+      '2026-05-22T00:00:00.000Z',
+    );
   });
 
   it('rejects garbage', () => {
@@ -43,7 +46,10 @@ describe('assertReservationWindow', () => {
   });
 
   it('rejects an end time at or before the start time', () => {
-    assert.throws(() => assertReservationWindow(start, start, 60), /ends_at must be after starts_at/);
+    assert.throws(
+      () => assertReservationWindow(start, start, 60),
+      /ends_at must be after starts_at/,
+    );
   });
 
   it('rejects durations that are not a multiple of the block size', () => {
@@ -55,14 +61,23 @@ describe('assertReservationWindow', () => {
 
   it('rejects start times that are not aligned to a block boundary', () => {
     assert.throws(
-      () => assertReservationWindow(new Date('2026-05-22T01:10:00Z'), new Date('2026-05-22T02:10:00Z'), 60),
+      () =>
+        assertReservationWindow(
+          new Date('2026-05-22T01:10:00Z'),
+          new Date('2026-05-22T02:10:00Z'),
+          60,
+        ),
       /aligned to a block boundary \(60 minutes\)/,
     );
   });
 
   it('aligns 30 minute blocks to the half hour', () => {
     assert.doesNotThrow(() =>
-      assertReservationWindow(new Date('2026-05-22T01:30:00Z'), new Date('2026-05-22T02:00:00Z'), 30),
+      assertReservationWindow(
+        new Date('2026-05-22T01:30:00Z'),
+        new Date('2026-05-22T02:00:00Z'),
+        30,
+      ),
     );
   });
 });
@@ -70,11 +85,21 @@ describe('assertReservationWindow', () => {
 describe('rangesOverlap', () => {
   it('treats ranges as half-open', () => {
     assert.equal(
-      rangesOverlap('2026-05-22T01:00:00Z', '2026-05-22T02:00:00Z', '2026-05-22T02:00:00Z', '2026-05-22T03:00:00Z'),
+      rangesOverlap(
+        '2026-05-22T01:00:00Z',
+        '2026-05-22T02:00:00Z',
+        '2026-05-22T02:00:00Z',
+        '2026-05-22T03:00:00Z',
+      ),
       false,
     );
     assert.equal(
-      rangesOverlap('2026-05-22T01:00:00Z', '2026-05-22T03:00:00Z', '2026-05-22T02:00:00Z', '2026-05-22T04:00:00Z'),
+      rangesOverlap(
+        '2026-05-22T01:00:00Z',
+        '2026-05-22T03:00:00Z',
+        '2026-05-22T02:00:00Z',
+        '2026-05-22T04:00:00Z',
+      ),
       true,
     );
   });

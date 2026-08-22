@@ -1,48 +1,42 @@
 import { computed, Injectable, signal } from '@angular/core';
-import type { GoTrueClient, Session } from '@supabase/auth-js';
-import { createClient } from '@supabase/supabase-js';
+import { Account, AppwriteException, Client, ID, Models, OAuthProvider } from 'appwrite';
 import { environment } from '../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private static readonly fallbackAppOrigin = 'https://clubshack.net';
-  private readonly supabaseUrl = environment.supabaseUrl.trim();
-  private readonly supabasePublishableKey = environment.supabasePublishableKey.trim();
+  private static readonly notConfiguredMessage = 'Appwrite is not configured.';
+
+  private readonly appwriteEndpoint = environment.appwriteEndpoint.trim();
+  private readonly appwriteProjectId = environment.appwriteProjectId.trim();
   private resolveInitialized!: () => void;
 
-  readonly isConfigured = computed(() => this.supabaseUrl.length > 0 && this.supabasePublishableKey.length > 0);
-  readonly session = signal<Session | null>(null);
+  readonly isConfigured = computed(
+    () => this.appwriteEndpoint.length > 0 && this.appwriteProjectId.length > 0,
+  );
+  readonly user = signal<Models.User<Models.Preferences> | null>(null);
   readonly initialized = signal(false);
   readonly isPasswordRecovery = signal(false);
-  readonly user = computed(() => this.session()?.user ?? null);
   readonly isAuthenticated = computed(() => this.user() !== null);
 
-  readonly supabase = this.isConfigured() ? createClient(this.supabaseUrl, this.supabasePublishableKey) : null;
-  private readonly authClient: GoTrueClient | null = this.supabase ? (this.supabase.auth as GoTrueClient) : null;
+  readonly client = this.isConfigured()
+    ? new Client().setEndpoint(this.appwriteEndpoint).setProject(this.appwriteProjectId)
+    : null;
+  private readonly account: Account | null = this.client ? new Account(this.client) : null;
   private readonly initializedPromise = new Promise<void>((resolve) => {
     this.resolveInitialized = resolve;
   });
 
   constructor() {
-    if (!this.authClient) {
+    this.isPasswordRecovery.set(this.recoveryParams() !== null);
+
+    if (!this.account) {
       this.markInitialized();
       return;
     }
 
-    void this.authClient
-      .getSession()
-      .then(({ data }) => {
-        this.session.set(data.session);
-      })
-      .finally(() => {
-        this.markInitialized();
-      });
-
-    this.authClient.onAuthStateChange((event, session) => {
-      this.session.set(session);
-      if (event === 'PASSWORD_RECOVERY') {
-        this.isPasswordRecovery.set(true);
-      }
+    void this.refreshUser().finally(() => {
+      this.markInitialized();
     });
   }
 
@@ -51,78 +45,152 @@ export class AuthService {
   }
 
   async signInWithPassword(email: string, password: string): Promise<string | null> {
-    if (!this.authClient) {
-      return 'Supabase is not configured.';
+    if (!this.account) {
+      return AuthService.notConfiguredMessage;
     }
 
-    const { error } = await this.authClient.signInWithPassword({ email, password });
-    return error?.message ?? null;
+    try {
+      await this.account.createEmailPasswordSession({ email, password });
+      await this.refreshUser();
+      return null;
+    } catch (error) {
+      return AuthService.toMessage(error);
+    }
   }
 
   async signInWithGoogle(redirectPath = '/'): Promise<string | null> {
-    if (!this.authClient) {
-      return 'Supabase is not configured.';
+    if (!this.account) {
+      return AuthService.notConfiguredMessage;
     }
 
-    const { error } = await this.authClient.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: this.buildRedirectUrl(redirectPath),
-      },
-    });
-    return error?.message ?? null;
+    try {
+      // Redirects the browser to the provider, so this never returns on success.
+      this.account.createOAuth2Session({
+        provider: OAuthProvider.Google,
+        success: this.buildRedirectUrl(redirectPath),
+        failure: this.buildRedirectUrl('/login'),
+      });
+      return null;
+    } catch (error) {
+      return AuthService.toMessage(error);
+    }
   }
 
   async signUp(email: string, password: string): Promise<string | null> {
-    if (!this.authClient) {
-      return 'Supabase is not configured.';
+    if (!this.account) {
+      return AuthService.notConfiguredMessage;
     }
 
-    const { error } = await this.authClient.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: this.buildRedirectUrl('/'),
-      },
-    });
-    return error?.message ?? null;
+    try {
+      await this.account.create({ userId: ID.unique(), email, password });
+      await this.account.createEmailPasswordSession({ email, password });
+      await this.refreshUser();
+      return null;
+    } catch (error) {
+      return AuthService.toMessage(error);
+    }
   }
 
   async signOut(): Promise<string | null> {
-    if (!this.authClient) {
-      return 'Supabase is not configured.';
+    if (!this.account) {
+      return AuthService.notConfiguredMessage;
     }
 
-    const { error } = await this.authClient.signOut();
-    return error?.message ?? null;
+    try {
+      await this.account.deleteSession({ sessionId: 'current' });
+      this.user.set(null);
+      return null;
+    } catch (error) {
+      return AuthService.toMessage(error);
+    }
   }
 
   async resetPasswordForEmail(email: string): Promise<string | null> {
-    if (!this.authClient) {
-      return 'Supabase is not configured.';
+    if (!this.account) {
+      return AuthService.notConfiguredMessage;
     }
 
-    const redirectTo = this.buildRedirectUrl('/reset-password');
-    const { error } = await this.authClient.resetPasswordForEmail(email, { redirectTo });
-    return error?.message ?? null;
+    try {
+      await this.account.createRecovery({
+        email,
+        url: this.buildRedirectUrl('/reset-password'),
+      });
+      return null;
+    } catch (error) {
+      return AuthService.toMessage(error);
+    }
   }
 
+  /**
+   * Sets a new password, either by completing an Appwrite recovery link (when the page
+   * was opened with `userId` and `secret` query parameters) or, failing that, for the
+   * currently signed-in user.
+   */
   async updatePassword(newPassword: string): Promise<string | null> {
-    if (!this.authClient) {
-      return 'Supabase is not configured.';
+    if (!this.account) {
+      return AuthService.notConfiguredMessage;
     }
 
-    const { error } = await this.authClient.updateUser({ password: newPassword });
-    return error?.message ?? null;
+    const recovery = this.recoveryParams();
+
+    try {
+      if (recovery) {
+        await this.account.updateRecovery({
+          ...recovery,
+          password: newPassword,
+        });
+        this.isPasswordRecovery.set(false);
+      } else {
+        await this.account.updatePassword({ password: newPassword });
+        await this.refreshUser();
+      }
+      return null;
+    } catch (error) {
+      return AuthService.toMessage(error);
+    }
   }
 
-  async updateUserMetadata(metadata: Record<string, string | null>): Promise<string | null> {
-    if (!this.authClient) {
-      return 'Supabase is not configured.';
+  /** Mirrors profile fields onto the Appwrite account name and preferences. */
+  async updateAccountProfile(
+    displayName: string,
+    prefs: Record<string, string | null>,
+  ): Promise<string | null> {
+    if (!this.account) {
+      return AuthService.notConfiguredMessage;
     }
 
-    const { error } = await this.authClient.updateUser({ data: metadata });
-    return error?.message ?? null;
+    try {
+      await this.account.updateName({ name: displayName });
+      await this.account.updatePrefs({ prefs });
+      await this.refreshUser();
+      return null;
+    } catch (error) {
+      return AuthService.toMessage(error);
+    }
+  }
+
+  private async refreshUser(): Promise<void> {
+    if (!this.account) {
+      return;
+    }
+
+    try {
+      this.user.set(await this.account.get());
+    } catch {
+      // No active session.
+      this.user.set(null);
+    }
+  }
+
+  private recoveryParams(): { userId: string; secret: string } | null {
+    if (typeof window === 'undefined') {
+      return null;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const userId = params.get('userId');
+    const secret = params.get('secret');
+    return userId && secret ? { userId, secret } : null;
   }
 
   private markInitialized(): void {
@@ -155,5 +223,12 @@ export class AuthService {
     }
 
     return AuthService.fallbackAppOrigin;
+  }
+
+  private static toMessage(error: unknown): string {
+    if (error instanceof AppwriteException) {
+      return error.message;
+    }
+    return error instanceof Error ? error.message : 'Unexpected error.';
   }
 }

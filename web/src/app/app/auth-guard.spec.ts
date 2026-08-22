@@ -5,10 +5,9 @@ import { authGuard } from './auth-guard';
 import { AuthService } from '../auth.service';
 
 class MockAuthService {
-  readonly session = signal<{ user: { email: string } } | null>(null);
+  readonly user = signal<{ email: string } | null>(null);
   readonly initialized = signal(true);
   readonly isConfigured = computed(() => true);
-  readonly user = computed(() => this.session()?.user ?? null);
   readonly isAuthenticated = computed(() => this.user() !== null);
 
   waitUntilInitialized = async (): Promise<void> => {};
@@ -28,7 +27,7 @@ describe('authGuard', () => {
   });
 
   it('allows authenticated users through', async () => {
-    auth.session.set({ user: { email: 'user@example.com' } });
+    auth.user.set({ email: 'user@example.com' });
 
     const result = await TestBed.runInInjectionContext(() => authGuard({} as never, { url: '/' } as never));
 

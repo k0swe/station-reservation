@@ -1,5 +1,7 @@
 export const environment = {
   production: false,
-  supabaseUrl: 'https://cpibdotiiptojhawnpff.supabase.co/',
-  supabasePublishableKey: 'sb_publishable_8FZuA-TzvxsJhLTmooO5SA_jAuGmf_-',
+  // TODO: replace with the real Appwrite project identifiers.
+  appwriteEndpoint: 'https://cloud.appwrite.io/v1',
+  appwriteProjectId: 'TODO_APPWRITE_PROJECT_ID',
+  appwriteApiFunctionId: 'api',
 };

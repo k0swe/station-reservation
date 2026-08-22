@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { AuthService } from './auth.service';
+import { ApiService } from './api.service';
 
 export interface Club {
   id: string;
@@ -88,331 +88,144 @@ export interface ClubReservation {
 
 @Injectable({ providedIn: 'root' })
 export class ClubService {
-  private readonly auth = inject(AuthService);
+  private readonly api = inject(ApiService);
 
-  private get supabase() {
-    return this.auth.supabase;
+  listClubs(): Promise<{ data: Club[] | null; error: string | null }> {
+    return this.api.call<Club[]>('listClubs');
   }
 
-  async listClubs(): Promise<{ data: Club[] | null; error: string | null }> {
-    if (!this.supabase) {
-      return { data: null, error: 'Supabase is not configured.' };
-    }
-    const { data, error } = await this.supabase.from('clubs').select('*').order('name');
-    return { data: data as Club[] | null, error: error?.message ?? null };
+  createClub(name: string, slug: string | null): Promise<{ data: Club | null; error: string | null }> {
+    return this.api.call<Club>('createClub', { name, slug });
   }
 
-  async createClub(name: string, slug: string | null): Promise<{ data: Club | null; error: string | null }> {
-    if (!this.supabase) {
-      return { data: null, error: 'Supabase is not configured.' };
-    }
-    const { data, error } = await this.supabase.rpc('create_club', { p_name: name, p_slug: slug });
-    return { data: data as Club | null, error: error?.message ?? null };
+  getClub(identifier: string): Promise<{ data: Club | null; error: string | null }> {
+    return this.api.call<Club>('getClub', { identifier: identifier.trim() });
   }
 
-  async getClub(identifier: string): Promise<{ data: Club | null; error: string | null }> {
-    if (!this.supabase) {
-      return { data: null, error: 'Supabase is not configured.' };
-    }
-
-    const normalizedIdentifier = identifier.trim();
-    const { data: slugMatch, error: slugError } = await this.supabase
-      .from('clubs')
-      .select('*')
-      .eq('slug', normalizedIdentifier)
-      .maybeSingle();
-    if (slugError) {
-      return { data: null, error: slugError.message };
-    }
-    if (slugMatch) {
-      return { data: slugMatch as Club, error: null };
-    }
-
-    if (!this.isUuid(normalizedIdentifier)) {
-      return { data: null, error: null };
-    }
-
-    const { data, error } = await this.supabase.from('clubs').select('*').eq('id', normalizedIdentifier).maybeSingle();
-    return { data: data as Club | null, error: error?.message ?? null };
-  }
-
-  private isUuid(value: string): boolean {
-    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-  }
-
-  async listClubResources(clubId: string): Promise<{ data: Resource[] | null; error: string | null }> {
-    if (!this.supabase) {
-      return { data: null, error: 'Supabase is not configured.' };
-    }
-
-    const { data, error } = await this.supabase.from('resources').select('*').eq('club_id', clubId).order('name');
-    return { data: data as Resource[] | null, error: error?.message ?? null };
+  listClubResources(clubId: string): Promise<{ data: Resource[] | null; error: string | null }> {
+    return this.api.call<Resource[]>('listClubResources', { clubId });
   }
 
   async isClubAdmin(clubId: string): Promise<{ data: boolean; error: string | null }> {
-    if (!this.supabase) {
-      return { data: false, error: 'Supabase is not configured.' };
-    }
-
-    const userId = this.auth.user()?.id;
-    if (!userId) {
-      return { data: false, error: 'Not authenticated.' };
-    }
-
-    const { data, error } = await this.supabase
-      .from('memberships')
-      .select('id')
-      .eq('club_id', clubId)
-      .eq('user_id', userId)
-      .eq('role', 'admin')
-      .eq('status', 'approved')
-      .maybeSingle();
-
-    return { data: Boolean(data), error: error?.message ?? null };
+    const { data, error } = await this.api.call<boolean>('isClubAdmin', {
+      clubId,
+    });
+    return { data: data === true, error };
   }
 
-  async createResource(input: CreateResourceInput): Promise<{ data: Resource | null; error: string | null }> {
-    if (!this.supabase) {
-      return { data: null, error: 'Supabase is not configured.' };
-    }
-
-    const { data, error } = await this.supabase
-      .from('resources')
-      .insert({
-        club_id: input.clubId,
-        name: input.name,
-        description: input.description,
-        block_size_minutes: input.blockSizeMinutes,
-        is_active: input.isActive ?? true,
-      })
-      .select()
-      .single();
-
-    return { data: data as Resource | null, error: error?.message ?? null };
+  createResource(input: CreateResourceInput): Promise<{ data: Resource | null; error: string | null }> {
+    return this.api.call<Resource>('createResource', { ...input });
   }
 
-  async updateResource(input: UpdateResourceInput): Promise<{ data: Resource | null; error: string | null }> {
-    if (!this.supabase) {
-      return { data: null, error: 'Supabase is not configured.' };
-    }
-
-    const { data, error } = await this.supabase
-      .from('resources')
-      .update({
-        name: input.name,
-        description: input.description,
-        block_size_minutes: input.blockSizeMinutes,
-        is_active: input.isActive,
-      })
-      .eq('id', input.resourceId)
-      .select()
-      .single();
-
-    return { data: data as Resource | null, error: error?.message ?? null };
+  updateResource(input: UpdateResourceInput): Promise<{ data: Resource | null; error: string | null }> {
+    return this.api.call<Resource>('updateResource', { ...input });
   }
 
   async deleteResource(resourceId: string): Promise<{ error: string | null }> {
-    if (!this.supabase) {
-      return { error: 'Supabase is not configured.' };
-    }
-
-    const { error } = await this.supabase.from('resources').delete().eq('id', resourceId);
-    return { error: error?.message ?? null };
+    const { error } = await this.api.call<null>('deleteResource', {
+      resourceId,
+    });
+    return { error };
   }
 
-  async listClubReservations(
+  listClubReservations(
     clubId: string,
     from: Date,
     to: Date,
   ): Promise<{ data: ClubReservation[] | null; error: string | null }> {
-    if (!this.supabase) {
-      return { data: null, error: 'Supabase is not configured.' };
-    }
-
-    const { data, error } = await this.supabase.rpc('list_club_reservations', {
-      p_club_id: clubId,
-      p_from: from.toISOString(),
-      p_to: to.toISOString(),
+    return this.api.call<ClubReservation[]>('listClubReservations', {
+      clubId,
+      from: from.toISOString(),
+      to: to.toISOString(),
     });
-
-    return { data: data as ClubReservation[] | null, error: error?.message ?? null };
   }
 
-  async createReservation(
+  createReservation(
     resourceId: string,
     startsAt: Date,
     endsAt: Date,
   ): Promise<{ data: { id: string } | null; error: string | null }> {
-    if (!this.supabase) {
-      return { data: null, error: 'Supabase is not configured.' };
-    }
-
-    const { data, error } = await this.supabase.rpc('create_reservation', {
-      p_resource_id: resourceId,
-      p_starts_at: startsAt.toISOString(),
-      p_ends_at: endsAt.toISOString(),
+    return this.api.call<{ id: string }>('createReservation', {
+      resourceId,
+      startsAt: startsAt.toISOString(),
+      endsAt: endsAt.toISOString(),
     });
-
-    return { data: data as { id: string } | null, error: error?.message ?? null };
   }
 
-  async requestMembership(clubId: string): Promise<{ data: Membership | null; error: string | null }> {
-    if (!this.supabase) {
-      return { data: null, error: 'Supabase is not configured.' };
-    }
-
-    const userId = this.auth.user()?.id;
-    if (!userId) {
-      return { data: null, error: 'Not authenticated.' };
-    }
-
-    const { data, error } = await this.supabase
-      .from('memberships')
-      .insert({ club_id: clubId, user_id: userId, role: 'member', status: 'pending' })
-      .select('*')
-      .single();
-
-    return { data: data as Membership | null, error: error?.message ?? null };
+  requestMembership(clubId: string): Promise<{ data: Membership | null; error: string | null }> {
+    return this.api.call<Membership>('requestMembership', { clubId });
   }
 
-  async getUserMembership(clubId: string): Promise<{ data: Membership | null; error: string | null }> {
-    if (!this.supabase) {
-      return { data: null, error: 'Supabase is not configured.' };
-    }
-
-    const userId = this.auth.user()?.id;
-    if (!userId) {
-      return { data: null, error: 'Not authenticated.' };
-    }
-
-    const { data, error } = await this.supabase
-      .from('memberships')
-      .select('*')
-      .eq('club_id', clubId)
-      .eq('user_id', userId)
-      .maybeSingle();
-
-    return { data: data as Membership | null, error: error?.message ?? null };
+  getUserMembership(clubId: string): Promise<{ data: Membership | null; error: string | null }> {
+    return this.api.call<Membership>('getUserMembership', { clubId });
   }
 
-  async getMyResourceApprovals(clubId: string): Promise<{ data: ResourceAccessApproval[] | null; error: string | null }> {
-    if (!this.supabase) {
-      return { data: null, error: 'Supabase is not configured.' };
-    }
-
-    const { data, error } = await this.supabase.rpc('get_my_resource_approvals', {
-      p_club_id: clubId,
+  getMyResourceApprovals(
+    clubId: string,
+  ): Promise<{ data: ResourceAccessApproval[] | null; error: string | null }> {
+    return this.api.call<ResourceAccessApproval[]>('getMyResourceApprovals', {
+      clubId,
     });
-
-    return { data: data as ResourceAccessApproval[] | null, error: error?.message ?? null };
   }
 
-  async applyForResourceAccess(
+  applyForResourceAccess(
     membershipId: string,
     resourceId: string,
   ): Promise<{ data: ResourceAccessApproval | null; error: string | null }> {
-    if (!this.supabase) {
-      return { data: null, error: 'Supabase is not configured.' };
-    }
-
-    const { data, error } = await this.supabase
-      .from('resource_access_approvals')
-      .insert({ membership_id: membershipId, resource_id: resourceId, status: 'pending' })
-      .select('id, resource_id, status')
-      .single();
-
-    return { data: data as ResourceAccessApproval | null, error: error?.message ?? null };
+    return this.api.call<ResourceAccessApproval>('applyForResourceAccess', {
+      membershipId,
+      resourceId,
+    });
   }
 
-  async listClubResourceAccessRequests(
+  listClubResourceAccessRequests(
     clubId: string,
   ): Promise<{ data: ResourceAccessRequest[] | null; error: string | null }> {
-    if (!this.supabase) {
-      return { data: null, error: 'Supabase is not configured.' };
-    }
-
-    const { data, error } = await this.supabase.rpc('list_club_resource_access_requests', {
-      p_club_id: clubId,
-    });
-
-    return { data: data as ResourceAccessRequest[] | null, error: error?.message ?? null };
+    return this.api.call<ResourceAccessRequest[]>('listClubResourceAccessRequests', { clubId });
   }
 
-  async setResourceAccessStatus(
+  setResourceAccessStatus(
     approvalId: string,
     status: 'approved' | 'denied',
   ): Promise<{ data: ResourceAccessApproval | null; error: string | null }> {
-    if (!this.supabase) {
-      return { data: null, error: 'Supabase is not configured.' };
-    }
-
-    const { data, error } = await this.supabase.rpc('set_resource_access_status', {
-      p_approval_id: approvalId,
-      p_new_status: status,
+    return this.api.call<ResourceAccessApproval>('setResourceAccessStatus', {
+      approvalId,
+      status,
     });
-
-    return { data: data as ResourceAccessApproval | null, error: error?.message ?? null };
   }
 
-  async listClubMembershipRequests(
+  listClubMembershipRequests(
     clubId: string,
   ): Promise<{ data: MembershipRequest[] | null; error: string | null }> {
-    if (!this.supabase) {
-      return { data: null, error: 'Supabase is not configured.' };
-    }
-
-    const { data, error } = await this.supabase.rpc('list_club_membership_requests', {
-      p_club_id: clubId,
+    return this.api.call<MembershipRequest[]>('listClubMembershipRequests', {
+      clubId,
     });
-
-    return { data: data as MembershipRequest[] | null, error: error?.message ?? null };
   }
 
-  async setMembershipStatus(
+  setMembershipStatus(
     membershipId: string,
     status: 'approved' | 'denied',
   ): Promise<{ data: Membership | null; error: string | null }> {
-    if (!this.supabase) {
-      return { data: null, error: 'Supabase is not configured.' };
-    }
-
-    const { data, error } = await this.supabase.rpc('approve_deny_membership', {
-      p_membership_id: membershipId,
-      p_new_status: status,
+    return this.api.call<Membership>('setMembershipStatus', {
+      membershipId,
+      status,
     });
-
-    return { data: data as Membership | null, error: error?.message ?? null };
   }
 
-  async setMemberRole(
+  setMemberRole(
     membershipId: string,
     role: 'admin' | 'member',
   ): Promise<{ data: Membership | null; error: string | null }> {
-    if (!this.supabase) {
-      return { data: null, error: 'Supabase is not configured.' };
-    }
-
-    const { data, error } = await this.supabase.rpc('set_member_role', {
-      p_membership_id: membershipId,
-      p_new_role: role,
-    });
-
-    return { data: data as Membership | null, error: error?.message ?? null };
+    return this.api.call<Membership>('setMemberRole', { membershipId, role });
   }
 
-  async cancelReservation(
+  cancelReservation(
     reservationId: string,
     notes?: string,
   ): Promise<{ data: ClubReservation | null; error: string | null }> {
-    if (!this.supabase) {
-      return { data: null, error: 'Supabase is not configured.' };
-    }
-
-    const { data, error } = await this.supabase.rpc('cancel_reservation', {
-      p_reservation_id: reservationId,
-      p_notes: notes ?? null,
+    return this.api.call<ClubReservation>('cancelReservation', {
+      reservationId,
+      notes: notes ?? null,
     });
-
-    return { data: data as ClubReservation | null, error: error?.message ?? null };
   }
 }

@@ -84,7 +84,13 @@ describe('reservation handlers', () => {
         { $id: 'mem-2', club_id: 'club-1', user_id: 'user-2', role: 'admin', status: 'approved' },
       ],
       resources: [
-        { $id: 'res-1', club_id: 'club-1', name: 'HF Station', block_size_minutes: 60, is_active: true },
+        {
+          $id: 'res-1',
+          club_id: 'club-1',
+          name: 'HF Station',
+          block_size_minutes: 60,
+          is_active: true,
+        },
       ],
       resource_access_approvals: [
         { $id: 'app-1', membership_id: 'mem-1', resource_id: 'res-1', status: 'approved' },
