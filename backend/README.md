@@ -16,8 +16,8 @@ backend/
             └── test/             # node:test unit tests
 ```
 
-> **TODO**: `appwrite.config.json` ships with placeholder identifiers (`projectId`). Replace them
-> with the real project ID (and endpoint, if self-hosted) before deploying.
+The checked-in `appwrite.config.json` targets the `station-reservation` project and the configured
+self-hosted endpoint. Update those values if deploying to a different Appwrite project.
 
 ## Prerequisites
 
@@ -38,11 +38,15 @@ appwrite push tables        # database, tables, columns, and indexes
 appwrite push functions     # the "Club Shack API" function
 ```
 
-The function needs one variable, which `appwrite.config.json` already declares:
+The function defaults to the checked-in database ID:
 
 | Variable               | Value       |
 | ---------------------- | ----------- |
 | `APPWRITE_DATABASE_ID` | `clubshack` |
+
+Set `APPWRITE_DATABASE_ID` as a function variable only if deploying with a different database ID.
+The Appwrite CLI schema used by this project does not accept inline function variables in
+`appwrite.config.json`.
 
 The function is executed with a
 [dynamic API key](https://appwrite.io/docs/products/functions/develop#dynamic-api-key) (the
@@ -79,7 +83,7 @@ Database `clubshack`:
 | `reservations`              | Time-block reservations                              |
 | `reservation_audit_events`  | Immutable audit log for reservation lifecycle events |
 
-Enum columns:
+Constrained string columns:
 
 | Column                                | Values                          |
 | ------------------------------------- | ------------------------------- |
@@ -88,6 +92,9 @@ Enum columns:
 | `resource_access_approvals.status`    | `pending`, `approved`, `denied` |
 | `reservations.status`                 | `active`, `cancelled`           |
 | `reservation_audit_events.event_type` | `created`, `cancelled`          |
+
+Appwrite TablesDB config does not currently accept an `enum` column type, so these are stored as
+strings and validated by the API function before writes.
 
 Key indexes:
 

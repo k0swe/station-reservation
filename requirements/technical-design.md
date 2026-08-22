@@ -118,8 +118,9 @@ These entities have:
   `appwrite push tables`.
 - Core tables: `clubs`, `users`, `memberships`, `resources`, `resource_access_approvals`,
   `reservations`, `reservation_audit_events`.
-- Column types, required flags, enum values, and unique indexes enforce the invariants that the
-  platform can express directly.
+- Column types, required flags, string status/role values, and unique indexes enforce the invariants
+  that the platform can express directly. Appwrite TablesDB config does not accept enum columns, so
+  enum-like values are stored as strings and validated by the API function before writes.
 
 ### 4.4 Authorization for Club / Tenant Isolation
 

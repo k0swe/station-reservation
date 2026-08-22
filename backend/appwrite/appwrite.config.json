@@ -1,12 +1,12 @@
 {
-  "projectId": "TODO_APPWRITE_PROJECT_ID",
+  "projectId": "station-reservation",
   "projectName": "Club Shack",
-  "endpoint": "https://cloud.appwrite.io/v1",
+  "endpoint": "https://appwrite.rmham.org/v1",
   "functions": [
     {
       "$id": "api",
       "name": "Club Shack API",
-      "runtime": "node-22",
+      "runtime": "node-24",
       "execute": ["users"],
       "events": [],
       "schedule": "",
@@ -15,12 +15,8 @@
       "logging": true,
       "entrypoint": "src/main.js",
       "commands": "npm ci",
-      "specification": "s-0.5vcpu-512mb",
       "path": "functions/api",
-      "scopes": ["users.read", "tables.read", "rows.read", "rows.write"],
-      "variables": {
-        "APPWRITE_DATABASE_ID": "clubshack"
-      }
+      "scopes": ["users.read", "tables.read", "rows.read", "rows.write"]
     }
   ],
   "tablesDB": [
@@ -39,15 +35,22 @@
       "rowSecurity": false,
       "$permissions": [],
       "columns": [
-        { "key": "name", "type": "string", "size": 255, "required": true, "array": false },
+        {
+          "key": "name",
+          "type": "string",
+          "size": 255,
+          "required": true,
+          "array": false,
+          "default": null
+        },
         { "key": "slug", "type": "string", "size": 128, "required": false, "array": false }
       ],
       "indexes": [
-        { "key": "clubs_name_idx", "type": "key", "attributes": ["name"], "orders": ["ASC"] },
+        { "key": "clubs_name_idx", "type": "key", "columns": ["name"], "orders": ["ASC"] },
         {
           "key": "clubs_slug_unique_idx",
           "type": "unique",
-          "attributes": ["slug"],
+          "columns": ["slug"],
           "orders": ["ASC"]
         }
       ]
@@ -75,20 +78,34 @@
       "rowSecurity": false,
       "$permissions": [],
       "columns": [
-        { "key": "club_id", "type": "string", "size": 36, "required": true, "array": false },
-        { "key": "user_id", "type": "string", "size": 36, "required": true, "array": false },
+        {
+          "key": "club_id",
+          "type": "string",
+          "size": 36,
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "user_id",
+          "type": "string",
+          "size": 36,
+          "required": true,
+          "array": false,
+          "default": null
+        },
         {
           "key": "role",
-          "type": "enum",
-          "elements": ["admin", "member"],
+          "type": "string",
+          "size": 32,
           "required": false,
           "array": false,
           "default": "member"
         },
         {
           "key": "status",
-          "type": "enum",
-          "elements": ["pending", "approved", "denied"],
+          "type": "string",
+          "size": 32,
           "required": false,
           "array": false,
           "default": "pending"
@@ -98,13 +115,13 @@
         {
           "key": "memberships_club_user_unique_idx",
           "type": "unique",
-          "attributes": ["club_id", "user_id"],
+          "columns": ["club_id", "user_id"],
           "orders": ["ASC", "ASC"]
         },
         {
           "key": "memberships_user_idx",
           "type": "key",
-          "attributes": ["user_id"],
+          "columns": ["user_id"],
           "orders": ["ASC"]
         }
       ]
@@ -117,14 +134,29 @@
       "rowSecurity": false,
       "$permissions": [],
       "columns": [
-        { "key": "club_id", "type": "string", "size": 36, "required": true, "array": false },
-        { "key": "name", "type": "string", "size": 255, "required": true, "array": false },
+        {
+          "key": "club_id",
+          "type": "string",
+          "size": 36,
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "name",
+          "type": "string",
+          "size": 255,
+          "required": true,
+          "array": false,
+          "default": null
+        },
         { "key": "description", "type": "string", "size": 2000, "required": false, "array": false },
         {
           "key": "block_size_minutes",
           "type": "integer",
           "required": true,
           "array": false,
+          "default": null,
           "min": 1,
           "max": 1440
         },
@@ -140,7 +172,7 @@
         {
           "key": "resources_club_idx",
           "type": "key",
-          "attributes": ["club_id", "name"],
+          "columns": ["club_id", "name"],
           "orders": ["ASC", "ASC"]
         }
       ]
@@ -153,12 +185,26 @@
       "rowSecurity": false,
       "$permissions": [],
       "columns": [
-        { "key": "membership_id", "type": "string", "size": 36, "required": true, "array": false },
-        { "key": "resource_id", "type": "string", "size": 36, "required": true, "array": false },
+        {
+          "key": "membership_id",
+          "type": "string",
+          "size": 36,
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "resource_id",
+          "type": "string",
+          "size": 36,
+          "required": true,
+          "array": false,
+          "default": null
+        },
         {
           "key": "status",
-          "type": "enum",
-          "elements": ["pending", "approved", "denied"],
+          "type": "string",
+          "size": 32,
           "required": false,
           "array": false,
           "default": "pending"
@@ -166,15 +212,15 @@
       ],
       "indexes": [
         {
-          "key": "approvals_membership_resource_unique_idx",
+          "key": "approvals_member_resource_uidx",
           "type": "unique",
-          "attributes": ["membership_id", "resource_id"],
+          "columns": ["membership_id", "resource_id"],
           "orders": ["ASC", "ASC"]
         },
         {
           "key": "approvals_resource_idx",
           "type": "key",
-          "attributes": ["resource_id"],
+          "columns": ["resource_id"],
           "orders": ["ASC"]
         }
       ]
@@ -187,14 +233,40 @@
       "rowSecurity": false,
       "$permissions": [],
       "columns": [
-        { "key": "resource_id", "type": "string", "size": 36, "required": true, "array": false },
-        { "key": "membership_id", "type": "string", "size": 36, "required": true, "array": false },
-        { "key": "starts_at", "type": "datetime", "required": true, "array": false },
-        { "key": "ends_at", "type": "datetime", "required": true, "array": false },
+        {
+          "key": "resource_id",
+          "type": "string",
+          "size": 36,
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "membership_id",
+          "type": "string",
+          "size": 36,
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "starts_at",
+          "type": "datetime",
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "ends_at",
+          "type": "datetime",
+          "required": true,
+          "array": false,
+          "default": null
+        },
         {
           "key": "status",
-          "type": "enum",
-          "elements": ["active", "cancelled"],
+          "type": "string",
+          "size": 32,
           "required": false,
           "array": false,
           "default": "active"
@@ -204,13 +276,13 @@
         {
           "key": "reservations_resource_range_idx",
           "type": "key",
-          "attributes": ["resource_id", "status", "starts_at"],
+          "columns": ["resource_id", "status", "starts_at"],
           "orders": ["ASC", "ASC", "ASC"]
         },
         {
           "key": "reservations_membership_idx",
           "type": "key",
-          "attributes": ["membership_id"],
+          "columns": ["membership_id"],
           "orders": ["ASC"]
         }
       ]
@@ -223,22 +295,37 @@
       "rowSecurity": false,
       "$permissions": [],
       "columns": [
-        { "key": "reservation_id", "type": "string", "size": 36, "required": true, "array": false },
+        {
+          "key": "reservation_id",
+          "type": "string",
+          "size": 36,
+          "required": true,
+          "array": false,
+          "default": null
+        },
         {
           "key": "event_type",
-          "type": "enum",
-          "elements": ["created", "cancelled"],
+          "type": "string",
+          "size": 32,
           "required": true,
-          "array": false
+          "array": false,
+          "default": null
         },
-        { "key": "actor_user_id", "type": "string", "size": 36, "required": true, "array": false },
+        {
+          "key": "actor_user_id",
+          "type": "string",
+          "size": 36,
+          "required": true,
+          "array": false,
+          "default": null
+        },
         { "key": "notes", "type": "string", "size": 2000, "required": false, "array": false }
       ],
       "indexes": [
         {
           "key": "audit_reservation_idx",
           "type": "key",
-          "attributes": ["reservation_id"],
+          "columns": ["reservation_id"],
           "orders": ["ASC"]
         }
       ]
