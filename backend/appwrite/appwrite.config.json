@@ -1,0 +1,231 @@
+{
+  "projectId": "TODO_APPWRITE_PROJECT_ID",
+  "projectName": "Club Shack",
+  "endpoint": "https://cloud.appwrite.io/v1",
+  "functions": [
+    {
+      "$id": "api",
+      "name": "Club Shack API",
+      "runtime": "node-22",
+      "execute": ["users"],
+      "events": [],
+      "schedule": "",
+      "timeout": 15,
+      "enabled": true,
+      "logging": true,
+      "entrypoint": "src/main.js",
+      "commands": "npm ci",
+      "specification": "s-0.5vcpu-512mb",
+      "path": "functions/api",
+      "scopes": ["users.read", "tables.read", "rows.read", "rows.write"],
+      "variables": {
+        "APPWRITE_DATABASE_ID": "clubshack"
+      }
+    }
+  ],
+  "tablesDB": [
+    {
+      "$id": "clubshack",
+      "name": "Club Shack",
+      "enabled": true
+    }
+  ],
+  "tables": [
+    {
+      "$id": "clubs",
+      "databaseId": "clubshack",
+      "name": "Clubs",
+      "enabled": true,
+      "rowSecurity": false,
+      "$permissions": [],
+      "columns": [
+        { "key": "name", "type": "string", "size": 255, "required": true, "array": false },
+        { "key": "slug", "type": "string", "size": 128, "required": false, "array": false }
+      ],
+      "indexes": [
+        { "key": "clubs_name_idx", "type": "key", "attributes": ["name"], "orders": ["ASC"] },
+        { "key": "clubs_slug_unique_idx", "type": "unique", "attributes": ["slug"], "orders": ["ASC"] }
+      ]
+    },
+    {
+      "$id": "users",
+      "databaseId": "clubshack",
+      "name": "User profiles",
+      "enabled": true,
+      "rowSecurity": false,
+      "$permissions": [],
+      "columns": [
+        { "key": "email", "type": "string", "size": 320, "required": false, "array": false },
+        { "key": "display_name", "type": "string", "size": 255, "required": false, "array": false },
+        { "key": "callsign", "type": "string", "size": 32, "required": false, "array": false },
+        { "key": "phone_number", "type": "string", "size": 32, "required": false, "array": false }
+      ],
+      "indexes": []
+    },
+    {
+      "$id": "memberships",
+      "databaseId": "clubshack",
+      "name": "Memberships",
+      "enabled": true,
+      "rowSecurity": false,
+      "$permissions": [],
+      "columns": [
+        { "key": "club_id", "type": "string", "size": 36, "required": true, "array": false },
+        { "key": "user_id", "type": "string", "size": 36, "required": true, "array": false },
+        {
+          "key": "role",
+          "type": "enum",
+          "elements": ["admin", "member"],
+          "required": false,
+          "array": false,
+          "default": "member"
+        },
+        {
+          "key": "status",
+          "type": "enum",
+          "elements": ["pending", "approved", "denied"],
+          "required": false,
+          "array": false,
+          "default": "pending"
+        }
+      ],
+      "indexes": [
+        {
+          "key": "memberships_club_user_unique_idx",
+          "type": "unique",
+          "attributes": ["club_id", "user_id"],
+          "orders": ["ASC", "ASC"]
+        },
+        { "key": "memberships_user_idx", "type": "key", "attributes": ["user_id"], "orders": ["ASC"] }
+      ]
+    },
+    {
+      "$id": "resources",
+      "databaseId": "clubshack",
+      "name": "Resources",
+      "enabled": true,
+      "rowSecurity": false,
+      "$permissions": [],
+      "columns": [
+        { "key": "club_id", "type": "string", "size": 36, "required": true, "array": false },
+        { "key": "name", "type": "string", "size": 255, "required": true, "array": false },
+        { "key": "description", "type": "string", "size": 2000, "required": false, "array": false },
+        {
+          "key": "block_size_minutes",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "min": 1,
+          "max": 1440
+        },
+        { "key": "is_active", "type": "boolean", "required": false, "array": false, "default": true }
+      ],
+      "indexes": [
+        {
+          "key": "resources_club_idx",
+          "type": "key",
+          "attributes": ["club_id", "name"],
+          "orders": ["ASC", "ASC"]
+        }
+      ]
+    },
+    {
+      "$id": "resource_access_approvals",
+      "databaseId": "clubshack",
+      "name": "Resource access approvals",
+      "enabled": true,
+      "rowSecurity": false,
+      "$permissions": [],
+      "columns": [
+        { "key": "membership_id", "type": "string", "size": 36, "required": true, "array": false },
+        { "key": "resource_id", "type": "string", "size": 36, "required": true, "array": false },
+        {
+          "key": "status",
+          "type": "enum",
+          "elements": ["pending", "approved", "denied"],
+          "required": false,
+          "array": false,
+          "default": "pending"
+        }
+      ],
+      "indexes": [
+        {
+          "key": "approvals_membership_resource_unique_idx",
+          "type": "unique",
+          "attributes": ["membership_id", "resource_id"],
+          "orders": ["ASC", "ASC"]
+        },
+        {
+          "key": "approvals_resource_idx",
+          "type": "key",
+          "attributes": ["resource_id"],
+          "orders": ["ASC"]
+        }
+      ]
+    },
+    {
+      "$id": "reservations",
+      "databaseId": "clubshack",
+      "name": "Reservations",
+      "enabled": true,
+      "rowSecurity": false,
+      "$permissions": [],
+      "columns": [
+        { "key": "resource_id", "type": "string", "size": 36, "required": true, "array": false },
+        { "key": "membership_id", "type": "string", "size": 36, "required": true, "array": false },
+        { "key": "starts_at", "type": "datetime", "required": true, "array": false },
+        { "key": "ends_at", "type": "datetime", "required": true, "array": false },
+        {
+          "key": "status",
+          "type": "enum",
+          "elements": ["active", "cancelled"],
+          "required": false,
+          "array": false,
+          "default": "active"
+        }
+      ],
+      "indexes": [
+        {
+          "key": "reservations_resource_range_idx",
+          "type": "key",
+          "attributes": ["resource_id", "status", "starts_at"],
+          "orders": ["ASC", "ASC", "ASC"]
+        },
+        {
+          "key": "reservations_membership_idx",
+          "type": "key",
+          "attributes": ["membership_id"],
+          "orders": ["ASC"]
+        }
+      ]
+    },
+    {
+      "$id": "reservation_audit_events",
+      "databaseId": "clubshack",
+      "name": "Reservation audit events",
+      "enabled": true,
+      "rowSecurity": false,
+      "$permissions": [],
+      "columns": [
+        { "key": "reservation_id", "type": "string", "size": 36, "required": true, "array": false },
+        {
+          "key": "event_type",
+          "type": "enum",
+          "elements": ["created", "cancelled"],
+          "required": true,
+          "array": false
+        },
+        { "key": "actor_user_id", "type": "string", "size": 36, "required": true, "array": false },
+        { "key": "notes", "type": "string", "size": 2000, "required": false, "array": false }
+      ],
+      "indexes": [
+        {
+          "key": "audit_reservation_idx",
+          "type": "key",
+          "attributes": ["reservation_id"],
+          "orders": ["ASC"]
+        }
+      ]
+    }
+  ]
+}

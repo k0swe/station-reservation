@@ -1,176 +1,150 @@
-# Backend — Supabase
+# Backend — Appwrite
 
-This directory contains the Supabase backend for the Club Shack app: SQL migrations, RLS
-policies, SQL RPC functions, and local-dev configuration.
+This directory contains the Appwrite backend for the Club Shack app: the project configuration
+(database tables, columns, indexes) and the Node function that enforces all business rules.
 
 ## Layout
 
 ```
 backend/
-└── supabase/
-    ├── config.toml          # Supabase CLI local-dev configuration
-    ├── seed.sql             # Local dev seed data (applied by `supabase db reset`)
-    ├── migrations/
-    │   ├── 20260522000000_initial_schema.sql   # Tables, enums, indexes, triggers
-    │   ├── 20260522000001_rls_policies.sql     # Row Level Security policies
-    │   └── 20260522000002_rpc_functions.sql    # SQL RPC functions (business rules)
-    └── functions/           # Edge Functions (reserved for future use)
+└── appwrite/
+    ├── appwrite.config.json      # Appwrite CLI project config: tables, columns, indexes, function
+    └── functions/
+        └── api/                  # "Club Shack API" function — all reads and writes go through it
+            ├── src/main.js       # Action router and handlers
+            ├── src/rules.js      # Pure business rules (slugs, reservation windows, overlaps)
+            └── test/             # node:test unit tests
 ```
+
+> **TODO**: `appwrite.config.json` ships with placeholder identifiers (`projectId`). Replace them
+> with the real project ID (and endpoint, if self-hosted) before deploying.
 
 ## Prerequisites
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) running locally
-- [Supabase CLI](https://supabase.com/docs/guides/cli/getting-started)
+- An Appwrite project (Appwrite Cloud or a self-hosted instance)
+- [Appwrite CLI](https://appwrite.io/docs/tooling/command-line/installation)
   ```bash
-  npm install supabase --save-dev   # or: brew install supabase/tap/supabase
+  npm install -g appwrite-cli
   ```
 
-## Local Development
-
-### First-time setup
+## Deploying
 
 ```bash
-cd backend
+cd backend/appwrite
 
-# Start local Supabase (Postgres, Auth, Studio, etc.)
-supabase start
+appwrite login
+appwrite push settings      # project settings
+appwrite push tables        # database, tables, columns, and indexes
+appwrite push functions     # the "Club Shack API" function
 ```
 
-On first run the CLI pulls Docker images; this takes a few minutes.
+The function needs one variable, which `appwrite.config.json` already declares:
 
-Once running, note the credentials printed to the terminal:
+| Variable               | Value       |
+| ---------------------- | ----------- |
+| `APPWRITE_DATABASE_ID` | `clubshack` |
 
-| Key             | Value                                                     |
-| --------------- | --------------------------------------------------------- |
-| Project URL     | `http://127.0.0.1:54321`                                  |
-| Publishable Key | (shown in terminal)                                       |
-| Secret Key      | (shown in terminal, keep private)                         |
-| Studio UI       | `http://127.0.0.1:54323`                                  |
-| DB URL          | `postgresql://postgres:postgres@127.0.0.1:54322/postgres` |
+The function is executed with a
+[dynamic API key](https://appwrite.io/docs/products/functions/develop#dynamic-api-key) (the
+`x-appwrite-key` header), so no static key has to be stored. When running the function locally with
+`appwrite run functions`, set `APPWRITE_API_KEY` in `backend/appwrite/functions/api/.env` instead.
 
-Use the **Publishable Key** and **Project URL** in the Angular frontend's `environment.ts`.
-
-### Reset and reseed the database
+## Running the function's tests
 
 ```bash
-supabase db reset
+cd backend/appwrite/functions/api
+npm ci
+npm test
 ```
 
-This drops and recreates the local database, replays all migrations, and applies `seed.sql`.
+## Authentication
 
-### Stop local services
+Appwrite Auth handles sign-up, sign-in, password recovery, and Google OAuth2. Configure the
+redirect/success URLs and enable the Google provider in **Auth → Settings** of the Appwrite console.
 
-```bash
-supabase stop          # stops containers; data is preserved
-supabase stop --no-backup  # stops and deletes all local data
-```
-
-## Seed Accounts
-
-After `supabase db reset` the following test accounts are available:
-
-| Email             | Password    | Role in club    |
-| ----------------- | ----------- | --------------- |
-| alice@example.com | password123 | Club Admin      |
-| bob@example.com   | password123 | Approved Member |
-| carol@example.com | password123 | Pending Member  |
-
-Club: **Rocky Mountain Amateur Radio Club**
+A profile row in the `users` table is created lazily, keyed by the Appwrite account ID, the first
+time a signed-in user loads their profile or joins a club.
 
 ## Database Schema
 
-### Tables
+Database `clubshack`:
 
 | Table                       | Description                                          |
 | --------------------------- | ---------------------------------------------------- |
 | `clubs`                     | Ham radio clubs (tenants)                            |
-| `users`                     | Public user profiles, mirroring `auth.users`         |
+| `users`                     | Public user profiles, keyed by the Appwrite user ID  |
 | `memberships`               | User ↔ Club relationship with role and status        |
 | `resources`                 | Reservable resources (stations) belonging to a club  |
 | `resource_access_approvals` | Per-member, per-resource access grants               |
 | `reservations`              | Time-block reservations                              |
 | `reservation_audit_events`  | Immutable audit log for reservation lifecycle events |
 
-### Enums
+Enum columns:
 
-| Type                     | Values                          |
-| ------------------------ | ------------------------------- |
-| `membership_status`      | `pending`, `approved`, `denied` |
-| `membership_role`        | `admin`, `member`               |
-| `resource_access_status` | `pending`, `approved`, `denied` |
-| `reservation_status`     | `active`, `cancelled`           |
-| `audit_event_type`       | `created`, `cancelled`          |
+| Column                                | Values                          |
+| ------------------------------------- | ------------------------------- |
+| `memberships.status`                  | `pending`, `approved`, `denied` |
+| `memberships.role`                    | `admin`, `member`               |
+| `resource_access_approvals.status`    | `pending`, `approved`, `denied` |
+| `reservations.status`                 | `active`, `cancelled`           |
+| `reservation_audit_events.event_type` | `created`, `cancelled`          |
 
-### Key constraints
+Key indexes:
 
-- `memberships`: UNIQUE `(club_id, user_id)` — one membership per user per club.
-- `resource_access_approvals`: UNIQUE `(membership_id, resource_id)`.
-- `reservations`: CHECK `ends_at > starts_at`; GiST index on active reservation ranges for efficient
-  overlap detection.
+- `memberships`: unique `(club_id, user_id)` — one membership per user per club.
+- `resource_access_approvals`: unique `(membership_id, resource_id)`.
+- `clubs`: unique `slug`.
+- `reservations`: `(resource_id, status, starts_at)` for overlap lookups.
 
-## Row Level Security
+## Authorization
 
-RLS is enabled on all public tables. The design follows two helper functions:
+Appwrite has no row-level policy language, so none of the tables grant any permission to end users:
+every table is reachable only with an API key. The web client therefore performs all reads and
+writes through the `api` function, which runs with a server key, identifies the caller from the
+`x-appwrite-user-id` header that Appwrite injects, and re-implements the authorization rules that
+used to live in Postgres RLS policies and `SECURITY DEFINER` functions.
 
-- `is_club_admin(club_id)` — true if the caller is an approved admin of that club.
-- `is_club_member(club_id)` — true if the caller has an approved membership.
+## API Function Actions
 
-| Table                       | Who can SELECT                  | Who can INSERT   | Who can UPDATE   |
-| --------------------------- | ------------------------------- | ---------------- | ---------------- |
-| `clubs`                     | Any auth user                   | Any auth user    | Club admins only |
-| `users`                     | Any auth user                   | Trigger only     | Own profile only |
-| `memberships`               | Own + club admins               | Self (pending)   | RPC functions    |
-| `resources`                 | Members (active) + admins (all) | Club admins      | Club admins      |
-| `resource_access_approvals` | Own + club admins               | Approved members | RPC functions    |
-| `reservations`              | Own + club admins               | RPC functions    | RPC functions    |
-| `reservation_audit_events`  | Own + club admins               | RPC functions    | —                |
+The client calls the function with the action as the request path and a JSON body, e.g.
+`POST /createReservation`. Every response is `{ "data": ..., "error": ... }`.
 
-## SQL RPC Functions
+| Action                                                   | Description                                                       |
+| -------------------------------------------------------- | ----------------------------------------------------------------- |
+| `listClubs`                                              | All clubs, ordered by name                                        |
+| `createClub`                                             | Creates a club and makes the caller an approved admin             |
+| `getClub`                                                | Looks a club up by slug, falling back to row ID                   |
+| `isClubAdmin`                                            | Whether the caller is an approved admin of a club                 |
+| `listClubResources`                                      | Club resources; members see active ones, admins see all           |
+| `createResource` / `updateResource` / `deleteResource`   | Club admin resource management                                    |
+| `requestMembership` / `getUserMembership`                | Self-service membership request and lookup                        |
+| `listClubMembershipRequests` / `setMembershipStatus`     | Admin membership review; denial cancels upcoming reservations     |
+| `setMemberRole`                                          | Promote/demote a member; refuses self-changes and the last admin  |
+| `getMyResourceApprovals` / `applyForResourceAccess`      | Member resource-access requests                                   |
+| `listClubResourceAccessRequests` / `setResourceAccessStatus` | Admin resource-access review                                  |
+| `listClubReservations`                                   | Active reservations for a club within a time window               |
+| `createReservation` / `cancelReservation`                | Reservation lifecycle, with audit events                          |
+| `getCurrentProfile` / `saveCurrentProfile`               | The caller's profile row                                          |
+| `listCurrentMemberships`                                 | The caller's memberships with club names                          |
 
-Complex writes are handled by `SECURITY DEFINER` SQL functions called via the PostgREST API at
-`POST /rest/v1/rpc/<function_name>`.
-
-| Function                                              | Description                                                                |
-| ----------------------------------------------------- | -------------------------------------------------------------------------- |
-| `create_club(name)`                                   | Creates a club and makes the caller an approved admin                      |
-| `approve_deny_membership(membership_id, new_status)`  | Approves or denies a membership; denying cancels all upcoming reservations |
-| `set_member_role(membership_id, new_role)`            | Promotes or demotes a member; prevents removing the last admin             |
-| `set_resource_access_status(approval_id, new_status)` | Approves, denies, or revokes resource access                               |
-| `create_reservation(resource_id, starts_at, ends_at)` | Creates a reservation after enforcing all business rules                   |
-| `cancel_reservation(reservation_id, notes?)`          | Cancels a reservation before it ends and writes an audit event             |
-
-### Reservation rules enforced by `create_reservation`
+### Reservation rules enforced by `createReservation`
 
 1. Caller must have an **approved membership** in the resource's club.
 2. Caller must have an **approved resource access approval** for the resource.
 3. The **resource must be active**.
 4. `ends_at > starts_at`.
 5. Duration must be a **whole multiple** of `block_size_minutes`.
-6. `starts_at` must be **aligned to a block boundary** (multiples of `block_size_minutes` from Unix
-   epoch, i.e., UTC midnight).
-7. No **overlap** with existing active reservations (enforced with a row-level `FOR UPDATE` lock to
-   prevent race conditions).
-
-## Deploying to a Hosted Supabase Project
-
-```bash
-# One-time: link to your remote project
-supabase login
-supabase link --project-ref <YOUR_PROJECT_ID>
-
-# Push all pending migrations
-supabase db push
-
-# (Optional) seed production — only for test/staging, never for real production
-# supabase db reset --linked
-```
+6. `starts_at` must be **aligned to a block boundary** (multiples of `block_size_minutes` from the
+   Unix epoch, i.e., UTC midnight).
+7. No **overlap** with existing active reservations.
 
 ## Future Work
 
-- **Edge Functions**: The `supabase/functions/` directory is reserved for Deno-based Edge Functions.
-  These would be useful for adding email or push notifications on membership approvals, reservation
-  reminders, etc.
-- **Usage caps**: per-member daily/weekly hour limits (schema-ready per section 6 of the product
-  requirements).
-- **Realtime subscriptions**: availability calendar can subscribe to the `reservations` table
-  changes for live updates.
+- **Overlap races**: Postgres serialized overlapping bookings with row locks. Appwrite checks for
+  conflicts before inserting, which leaves a small race window between two simultaneous bookings of
+  the same slot.
+- **Messaging**: Appwrite Messaging could send email or push notifications on membership approvals
+  and reservation reminders.
+- **Usage caps**: per-member daily/weekly hour limits.
+- **Realtime subscriptions**: the availability calendar could subscribe to `reservations` changes
+  for live updates.

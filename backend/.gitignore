@@ -1,7 +1,7 @@
-# Supabase local dev environment — never commit secrets or volumes
+# Appwrite CLI local state — never commit secrets
 .env
 .env.local
+.appwrite
 
-# Supabase CLI stores local project secrets here
-supabase/.branches
-supabase/.temp
+# Function dependencies
+node_modules/
