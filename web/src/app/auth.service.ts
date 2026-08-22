@@ -65,7 +65,7 @@ export class AuthService {
 
     try {
       // Redirects the browser to the provider, so this never returns on success.
-      this.account.createOAuth2Session({
+      await this.account.createOAuth2Session({
         provider: OAuthProvider.Google,
         success: this.buildRedirectUrl(redirectPath),
         failure: this.buildRedirectUrl('/login'),

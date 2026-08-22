@@ -695,7 +695,10 @@ const handlers = {
 };
 
 export default async ({ req, res, error }) => {
-  const action = (req.path ?? '/').replace(/^\/+/, '').replace(/\/+$/, '');
+  const segments = String(req.path ?? '')
+    .split('/')
+    .filter(Boolean);
+  const action = segments.length === 1 ? segments[0] : '';
   const handler = Object.prototype.hasOwnProperty.call(handlers, action)
     ? handlers[action]
     : undefined;

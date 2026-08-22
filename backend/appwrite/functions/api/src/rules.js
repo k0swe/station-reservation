@@ -65,10 +65,11 @@ export function assertReservationWindow(startsAt, endsAt, blockSizeMinutes) {
     throw new RuleError('ends_at must be after starts_at');
   }
 
-  const blockMs = blockSizeMinutes * 60 * 1000;
   if (!Number.isInteger(blockSizeMinutes) || blockSizeMinutes <= 0) {
     throw new RuleError('Resource has an invalid block size');
   }
+
+  const blockMs = blockSizeMinutes * 60 * 1000;
 
   if ((endsAt.getTime() - startsAt.getTime()) % blockMs !== 0) {
     throw new RuleError(

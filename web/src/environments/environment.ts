@@ -1,7 +1,7 @@
 export const environment = {
   production: false,
-  // TODO: replace with the real Appwrite project identifiers.
   appwriteEndpoint: 'https://cloud.appwrite.io/v1',
-  appwriteProjectId: 'TODO_APPWRITE_PROJECT_ID',
+  // TODO: set the Appwrite project ID; while it is blank the app shows its setup hints.
+  appwriteProjectId: '',
   appwriteApiFunctionId: 'api',
 };
