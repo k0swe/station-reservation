@@ -1,4 +1,5 @@
 import { inject, Injectable } from '@angular/core';
+import { ApiService } from './api.service';
 import { AuthService } from './auth.service';
 
 export interface UserProfile {
@@ -27,83 +28,45 @@ export interface SaveProfileInput {
 
 @Injectable({ providedIn: 'root' })
 export class UserProfileService {
+  private readonly api = inject(ApiService);
   private readonly auth = inject(AuthService);
 
-  private get supabase() {
-    return this.auth.supabase;
+  getCurrentProfile(): Promise<{
+    data: UserProfile | null;
+    error: string | null;
+  }> {
+    return this.api.call<UserProfile>('getCurrentProfile');
   }
 
-  async getCurrentProfile(): Promise<{ data: UserProfile | null; error: string | null }> {
-    if (!this.supabase) {
-      return { data: null, error: 'Supabase is not configured.' };
-    }
-
-    const userId = this.auth.user()?.id;
-    if (!userId) {
-      return { data: null, error: 'Not authenticated.' };
-    }
-
-    const { data, error } = await this.supabase
-      .from('users')
-      .select('id, email, display_name, callsign, phone_number')
-      .eq('id', userId)
-      .single();
-
-    return { data: data as UserProfile | null, error: error?.message ?? null };
+  listCurrentMemberships(): Promise<{
+    data: MembershipSummary[] | null;
+    error: string | null;
+  }> {
+    return this.api.call<MembershipSummary[]>('listCurrentMemberships');
   }
 
-  async listCurrentMemberships(): Promise<{ data: MembershipSummary[] | null; error: string | null }> {
-    if (!this.supabase) {
-      return { data: null, error: 'Supabase is not configured.' };
-    }
-
-    const { data, error } = await this.supabase
-      .from('memberships')
-      .select('id, role, status, club:clubs(id, name)')
-      .order('created_at', { ascending: false });
-
-    return { data: data as MembershipSummary[] | null, error: error?.message ?? null };
-  }
-
-  async saveCurrentProfile(input: SaveProfileInput): Promise<{ data: UserProfile | null; error: string | null }> {
-    if (!this.supabase) {
-      return { data: null, error: 'Supabase is not configured.' };
-    }
-
-    const userId = this.auth.user()?.id;
-    if (!userId) {
-      return { data: null, error: 'Not authenticated.' };
-    }
-
+  async saveCurrentProfile(
+    input: SaveProfileInput,
+  ): Promise<{ data: UserProfile | null; error: string | null }> {
     const displayName = input.displayName.trim();
     const callsign = input.callsign.trim();
     const phoneNumber = input.phoneNumber.trim();
 
-    const { data, error } = await this.supabase
-      .from('users')
-      .update({
-        display_name: displayName,
-        callsign: callsign || null,
-        phone_number: phoneNumber || null,
-      })
-      .eq('id', userId)
-      .select('id, email, display_name, callsign, phone_number')
-      .single();
+    const { data, error } = await this.api.call<UserProfile>('saveCurrentProfile', {
+      displayName,
+      callsign,
+      phoneNumber,
+    });
 
     if (error) {
-      return { data: null, error: error.message };
+      return { data: null, error };
     }
 
-    const authError = await this.auth.updateUserMetadata({
-      display_name: displayName,
+    const authError = await this.auth.updateAccountProfile(displayName, {
       callsign: callsign || null,
       phone_number: phoneNumber || null,
     });
 
-    if (authError) {
-      return { data: data as UserProfile | null, error: authError };
-    }
-
-    return { data: data as UserProfile | null, error: null };
+    return { data, error: authError };
   }
 }

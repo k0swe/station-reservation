@@ -5,10 +5,9 @@ import { LoginPage } from './login';
 import { AuthService } from '../../auth.service';
 
 class MockAuthService {
-  readonly session = signal<{ user: { email: string } } | null>(null);
+  readonly user = signal<{ email: string } | null>(null);
   readonly initialized = signal(true);
   readonly isConfigured = computed(() => true);
-  readonly user = computed(() => this.session()?.user ?? null);
   readonly isAuthenticated = computed(() => this.user() !== null);
 
   waitUntilInitialized = async (): Promise<void> => {};
@@ -52,7 +51,7 @@ describe('LoginPage', () => {
     const fixture = TestBed.createComponent(LoginPage);
     fixture.detectChanges();
     redirectTo = '/clubs';
-    auth.session.set({ user: { email: 'user@example.com' } });
+    auth.user.set({ email: 'user@example.com' });
 
     fixture.detectChanges();
     await fixture.whenStable();

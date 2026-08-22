@@ -5,11 +5,10 @@ import { ForgotPasswordPage } from './forgot-password';
 import { AuthService } from '../../auth.service';
 
 class MockAuthService {
-  readonly session = signal<null>(null);
+  readonly user = signal<{ email: string } | null>(null);
   readonly initialized = signal(true);
   readonly isConfigured = computed(() => true);
-  readonly user = computed(() => null);
-  readonly isAuthenticated = computed(() => false);
+  readonly isAuthenticated = computed(() => this.user() !== null);
   readonly isPasswordRecovery = signal(false);
 
   resetPasswordForEmail = vi.fn().mockResolvedValue(null);
