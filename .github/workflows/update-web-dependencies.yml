@@ -11,6 +11,8 @@ jobs:
   update-web-dependencies:
     name: Update web dependencies
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.DEPENDENCY_UPDATE_TOKEN || github.token }}
     defaults:
       run:
         working-directory: web
@@ -19,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           # Configure DEPENDENCY_UPDATE_TOKEN if generated PRs must trigger other workflows.
-          token: ${{ secrets.DEPENDENCY_UPDATE_TOKEN || github.token }}
+          token: ${{ env.GH_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -32,6 +34,7 @@ jobs:
         run: npm ci
 
       - name: Update dependencies
+        # npm update refreshes versions allowed by the existing package.json ranges.
         run: npm update --save
 
       - name: Run unit tests
@@ -39,7 +42,6 @@ jobs:
 
       - name: Create dependency update pull request
         env:
-          GH_TOKEN: ${{ secrets.DEPENDENCY_UPDATE_TOKEN || github.token }}
           BRANCH_NAME: automated/update-web-dependencies-${{ github.run_id }}
           BASE_BRANCH: ${{ github.ref_name }}
         run: |
