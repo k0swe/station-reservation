@@ -1,0 +1,64 @@
+name: Update Web Dependencies
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-web-dependencies:
+    name: Update web dependencies
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.DEPENDENCY_UPDATE_TOKEN || github.token }}
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Configure DEPENDENCY_UPDATE_TOKEN if generated PRs must trigger other workflows.
+          token: ${{ env.GH_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Update dependencies
+        # npm update refreshes versions allowed by the existing package.json ranges.
+        run: npm update --save
+
+      - name: Run unit tests
+        run: npm test -- --watch=false
+
+      - name: Create dependency update pull request
+        env:
+          BRANCH_NAME: automated/update-web-dependencies-${{ github.run_id }}
+          BASE_BRANCH: ${{ github.ref_name }}
+        run: |
+          if [ -z "$(git status --porcelain --untracked-files=no -- package.json package-lock.json)" ]; then
+            echo "No dependency updates found."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch --create "$BRANCH_NAME"
+          git add package.json package-lock.json
+          git commit -m "Update web dependencies"
+          git push origin "$BRANCH_NAME"
+          gh pr create \
+            --repo "$GITHUB_REPOSITORY" \
+            --base "$BASE_BRANCH" \
+            --head "$BRANCH_NAME" \
+            --title "Update web dependencies" \
+            --body "Updates dependencies in the web folder via the manual workflow."
