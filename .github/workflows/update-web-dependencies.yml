@@ -26,7 +26,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
           cache-dependency-path: web/package-lock.json
 
@@ -34,8 +34,7 @@ jobs:
         run: npm ci
 
       - name: Update dependencies
-        # npm update refreshes versions allowed by the existing package.json ranges.
-        run: npm update --save
+        run: npx --yes npm-check-updates --peer --reject npm --upgrade && npm install
 
       - name: Run unit tests
         run: npm test -- --watch=false
