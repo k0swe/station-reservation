@@ -18,6 +18,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          # Configure DEPENDENCY_UPDATE_TOKEN if generated PRs must trigger other workflows.
           token: ${{ secrets.DEPENDENCY_UPDATE_TOKEN || github.token }}
 
       - name: Setup Node.js
@@ -42,7 +43,7 @@ jobs:
           BRANCH_NAME: automated/update-web-dependencies-${{ github.run_id }}
           BASE_BRANCH: ${{ github.ref_name }}
         run: |
-          if git diff --quiet HEAD -- package.json package-lock.json; then
+          if [ -z "$(git status --porcelain --untracked-files=no -- .)" ]; then
             echo "No dependency updates found."
             exit 0
           fi
@@ -50,7 +51,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch --create "$BRANCH_NAME"
-          git add package.json package-lock.json
+          git add -u .
           git commit -m "Update web dependencies"
           git push origin "$BRANCH_NAME"
           gh pr create \
