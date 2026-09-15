@@ -17,6 +17,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.DEPENDENCY_UPDATE_TOKEN || github.token }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -36,7 +38,7 @@ jobs:
 
       - name: Create dependency update pull request
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.DEPENDENCY_UPDATE_TOKEN || github.token }}
           BRANCH_NAME: automated/update-web-dependencies-${{ github.run_id }}
           BASE_BRANCH: ${{ github.ref_name }}
         run: |
