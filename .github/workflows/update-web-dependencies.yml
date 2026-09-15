@@ -43,7 +43,7 @@ jobs:
           BRANCH_NAME: automated/update-web-dependencies-${{ github.run_id }}
           BASE_BRANCH: ${{ github.ref_name }}
         run: |
-          if [ -z "$(git status --porcelain --untracked-files=no -- .)" ]; then
+          if [ -z "$(git status --porcelain --untracked-files=no -- package.json package-lock.json)" ]; then
             echo "No dependency updates found."
             exit 0
           fi
@@ -51,7 +51,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch --create "$BRANCH_NAME"
-          git add -u .
+          git add package.json package-lock.json
           git commit -m "Update web dependencies"
           git push origin "$BRANCH_NAME"
           gh pr create \
