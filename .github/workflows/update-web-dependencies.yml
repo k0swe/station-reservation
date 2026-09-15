@@ -35,7 +35,7 @@ jobs:
 
       - name: Update dependencies
         # npm update refreshes versions allowed by the existing package.json ranges.
-        run: npm update --save
+        run: corepack npm update --save
 
       - name: Run unit tests
         run: npm test -- --watch=false
