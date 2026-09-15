@@ -40,7 +40,7 @@ jobs:
           BRANCH_NAME: automated/update-web-dependencies-${{ github.run_id }}
           BASE_BRANCH: ${{ github.ref_name }}
         run: |
-          if git diff --quiet -- package.json package-lock.json; then
+          if git diff --quiet HEAD -- package.json package-lock.json; then
             echo "No dependency updates found."
             exit 0
           fi
@@ -52,6 +52,7 @@ jobs:
           git commit -m "Update web dependencies"
           git push origin "$BRANCH_NAME"
           gh pr create \
+            --repo "$GITHUB_REPOSITORY" \
             --base "$BASE_BRANCH" \
             --head "$BRANCH_NAME" \
             --title "Update web dependencies" \
