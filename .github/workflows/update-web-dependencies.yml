@@ -34,7 +34,9 @@ jobs:
         run: npm ci
 
       - name: Update dependencies
-        # npm update refreshes versions allowed by the existing package.json ranges.
+        # Use the declared npm version to avoid npm 10's dependency graph crash.
+        env:
+          COREPACK_ENABLE_DOWNLOAD_PROMPT: 0
         run: corepack npm update --save
 
       - name: Run unit tests
