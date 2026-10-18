@@ -9,6 +9,6 @@
     "test": "node --test"
   },
   "dependencies": {
-    "node-appwrite": "^29.0.0"
+    "node-appwrite": "^30.0.0"
   }
 }
